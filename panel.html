@@ -154,18 +154,18 @@
   <main class="container">
     
     <!-- Contador de Pedidos -->
-    <div class="alert-panel">
-      <div class="alert-text">Pedidos pendientes por autorizar</div>
+    <div class="alert-panel coordinador-module" id="panel-alertas" style="display: none;">
+      <div class="alert-text">Tus pedidos pendientes por autorizar</div>
       <div class="badge" id="badge-pendientes">...</div>
     </div>
 
     <!-- Menú de Módulos -->
     <div class="grid-menu">
       
-      <a href="autorizar.html" class="card">
-        <div class="card-icon">📝</div>
-        <div class="card-title">Autorizar Pedidos</div>
-      </a>
+      <a href="autorizar.html" class="card coordinador-module" id="modulo-autorizar" style="display: none;">
+      <div class="card-icon">📝</div>
+      <div class="card-title">Autorizar Pedidos</div>
+    </a>
 
       <a href="materiales.html" class="card">
         <div class="card-icon">📦</div>
@@ -215,9 +215,17 @@
       const nombreCorto = usuario.nombre.split(" ").slice(0, 2).join(" "); 
       document.getElementById('display-name').textContent = nombreCorto;
 
-      // 3. ACTIVAR MÓDULO DE ADMIN (Si corresponde)
+      // 3. ACTIVAR MÓDULOS SEGÚN ROLES
       if (usuario.isAdmin === true) {
         document.getElementById('modulo-admin').style.display = 'flex';
+      }
+      
+      // Mostrar Autorización solo a Coordinadores o Admins
+      if (usuario.isCoordinador === true || usuario.isAdmin === true) {
+        document.getElementById('panel-alertas').style.display = 'flex';
+        document.getElementById('modulo-autorizar').style.display = 'flex';
+        // Pasar el username del coordinador para que cuente solo SUS pedidos
+        obtenerPendientes(usuario.username); 
       }
 
       // 4. CONSULTAR CANTIDAD DE PEDIDOS PENDIENTES
