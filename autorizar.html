@@ -1,300 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autorizar Pedidos</title>
-  <meta name="theme-color" content="#2196f3">
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    body {
-      background-color: #0d1418;
-      background-image: radial-gradient(#1c2730 1px, transparent 0);
-      background-size: 16px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 16px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .card {
-      background: #17212b;
-      color: #f5f5f5;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    /* Encabezado con título a la izquierda y botón refresh a la derecha */
-    .header-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #ffffff;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Botón de Refresh Superior */
-    .btn-refresh {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      font-size: 16px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s, transform 0.3s ease;
-    }
-
-    .btn-refresh:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-refresh:active {
-      transform: rotate(180deg);
-    }
-
-    /* Grid de Encabezado */
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 16px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .info-item label {
-      color: #8b9dad;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .info-item select, .info-item input {
-      background: #0e1621;
-      color: #64b5f6;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #8b9dad;
-      font-weight: bold;
-      width: fit-content;
-    }
-
-    /* Tabla de Productos */
-    .table-container {
-      overflow-x: auto;
-      margin-bottom: 16px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      text-align: left;
-    }
-
-    th {
-      background: rgba(255, 255, 255, 0.05);
-      color: #8b9dad;
-      padding: 10px 8px;
-      font-weight: 600;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    td {
-      padding: 10px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      color: #e1e9f0;
-    }
-
-    .input-qty {
-      width: 70px;
-      background: #0e1621;
-      border: 1px solid #2b5278;
-      color: #fff;
-      padding: 6px;
-      border-radius: 6px;
-      text-align: center;
-      font-size: 13px;
-    }
-
-    .input-qty:focus {
-      border-color: #64b5f6;
-      outline: none;
-    }
-
-    /* Botones de Acción */
-    .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .btn-primary {
-      background: #2b5278;
-      color: #ffffff;
-      border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-
-    .btn-primary:hover {
-      background: #366596;
-    }
-
-    .btn-primary:disabled {
-      background: #394756;
-      color: #8b9dad;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: #394756;
-      color: #ffffff;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <div class="card">
-      <!-- Cabecera con Botón Refresh -->
-      <div class="header-title">
-        <div class="header-left">
-          <span>📦</span>
-          <span>Autorización de Pedidos</span>
-        </div>
-        <button class="btn-refresh" onclick="cargarPendientes()" title="Actualizar lista">
-          🔄
-        </button>
-      </div>
-
-      <!-- Datos de la Solicitud -->
-      <div class="info-grid">
-        <div class="info-item">
-          <label for="solicitud-select">Solicitud (Pendientes):</label>
-          <select id="solicitud-select" onchange="cargarSolicitud()">
-            <option>Cargando...</option>
-          </select>
-        </div>
-
-        <div class="info-item">
-          <label>Fecha de Consulta:</label>
-          <input type="text" id="fecha-val" value="" readonly>
-        </div>
-
-        <div class="info-item">
-          <label>Usuario (Técnico):</label>
-          <input type="text" id="usuario-val" value="" readonly>
-        </div>
-
-        <div class="info-item">
-          <label>Estado:</label>
-          <span class="status-badge" id="estado-badge">---</span>
-        </div>
-      </div>
-
-      <!-- Tabla de Detalle -->
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Detalle</th>
-              <th>Solicitado</th>
-              <th>Autorizado</th>
-            </tr>
-          </thead>
-          <tbody id="items-body">
-            <tr>
-              <td colspan="4" style="text-align: center;">Cargando productos...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Botones de Acción -->
-      <div class="actions">
-        <button class="btn-primary" id="btn-autorizar" onclick="autorizarPedido()">
-          <span>📝</span>
-          <span>Autorizar Pedido</span>
-        </button>
-
-        <button class="btn-secondary" onclick="volverMenu()">
-          <span>⬅️</span>
-          <span>Volver al Menú</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script>
+<script>
     // ==========================================
     // CONFIGURACIÓN: URL DEL SCRIPT DE GOOGLE
     // ==========================================
@@ -314,34 +18,41 @@
     }
 
     /**
-     * Llama al endpoint GET ?action=listarPendientes
+     * Llama al endpoint POST enviando el usuario logueado para listar sus pendientes
      */
-    // Dentro de autorizar.html
-async function cargarPendientes() {
-  const usuario = JSON.parse(localStorage.getItem('sesionPWA'));
-  
-  const payload = JSON.stringify({ 
-    action: "listarPendientes",
-    username: usuario.username // <-- Aquí enviamos quién está pidiendo la lista
-  });
-
-  const respuesta = await fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: payload,
-    redirect: "follow"
-  });
-  
-  // ... renderizas la lista
-}
+    async function cargarPendientes() {
+      const select = document.getElementById('solicitud-select'); // Faltaba definir el select
+      select.innerHTML = '<option>Cargando...</option>';
       
       try {
-        const response = await fetch(SCRIPT_URL + "?action=listarPendientes&t=" + Date.now());
+        // 1. Obtener usuario de localStorage
+        const usuarioStorage = localStorage.getItem('sesionPWA');
+        if (!usuarioStorage) {
+            alert("No hay sesión activa. Por favor inicia sesión.");
+            return;
+        }
+        const usuario = JSON.parse(usuarioStorage);
+
+        // 2. Preparar los datos a enviar
+        const payload = JSON.stringify({ 
+          action: "listarPendientes",
+          username: usuario.username 
+        });
+
+        // 3. Hacer la petición al servidor
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payload,
+          redirect: "follow"
+        });
+        
         const idsPendientes = await response.json();
         
+        // 4. Renderizar la lista
         select.innerHTML = ''; 
         
-        if (!idsPendientes || idsPendientes.length === 0) {
+        if (!idsPendientes || idsPendientes.length === 0 || idsPendientes.error) {
           select.innerHTML = '<option value="">No hay pedidos pendientes</option>';
           document.getElementById('items-body').innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay información que mostrar</td></tr>';
           document.getElementById('btn-autorizar').disabled = true;
@@ -391,15 +102,13 @@ async function cargarPendientes() {
           return;
         }
 
-        // Llenar usuario y fecha/hora enviadas desde Sheets
         document.getElementById('usuario-val').value = data.usuario || 'N/A';
-        document.getElementById('fecha-val').value = data.fecha || 'N/A'; // <-- Hora/Fecha del pedido
+        document.getElementById('fecha-val').value = data.fecha || 'N/A'; 
 
         estadoBadge.textContent = "Pendiente";
         estadoBadge.style.color = "#ffb74d";
         estadoBadge.style.background = "rgba(255, 183, 77, 0.2)";
 
-        // Llenar productos
         tbody.innerHTML = '';
         if (data.items && data.items.length > 0) {
           data.items.forEach(item => {
@@ -446,6 +155,7 @@ async function cargarPendientes() {
       });
 
       const payload = {
+        action: "procesarAutorizacion", // Agregado por seguridad para tu nueva API
         id: idSeleccionado,
         items: itemsAutorizados
       };
@@ -480,5 +190,3 @@ async function cargarPendientes() {
       window.history.back();
     }
   </script>
-</body>
-</html>
