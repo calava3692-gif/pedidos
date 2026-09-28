@@ -316,10 +316,24 @@
     /**
      * Llama al endpoint GET ?action=listarPendientes
      */
-    async function cargarPendientes() {
-      const select = document.getElementById('solicitud-select');
-      select.innerHTML = '<option value="">Cargando pendientes...</option>';
-      limpiarFormulario();
+    // Dentro de autorizar.html
+async function cargarPendientes() {
+  const usuario = JSON.parse(localStorage.getItem('sesionPWA'));
+  
+  const payload = JSON.stringify({ 
+    action: "listarPendientes",
+    username: usuario.username // <-- Aquí enviamos quién está pidiendo la lista
+  });
+
+  const respuesta = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: payload,
+    redirect: "follow"
+  });
+  
+  // ... renderizas la lista
+}
       
       try {
         const response = await fetch(SCRIPT_URL + "?action=listarPendientes&t=" + Date.now());
