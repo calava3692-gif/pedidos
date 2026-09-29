@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorización de Pedidos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #4A90E2;
+            --background-color: #f4f7f6;
+            --text-dark: #333;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-dark);
+            padding: 20px;
+        }
+
+        .header-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .header-title h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .order-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .order-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .order-header .order-info span {
+            margin-right: 15px;
+            font-size: 14px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover { opacity: 0.85; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-warning { background-color: var(--warning-color); color: white; }
+        .btn-secondary { background-color: #95a5a6; color: white; }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table th, .items-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .items-table th {
+            background-color: #f8f9fa;
+            color: #555;
+        }
+
+        .qty-input {
+            width: 70px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            color: #777;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">
+        <h2><i class="fas fa-check-circle"></i> Autorización de Pedidos Pendientes</h2>
+        <button class="btn btn-secondary" onclick="cargarPedidos()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+    </div>
+
+    <div id="container-pedidos">
+        <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando pedidos pendientes...</div>
+    </div>
+
+    <script>
+        // PEGA AQUÍ LA URL DE TU GOOGLE APPS SCRIPT
+        const scriptURL = 'https://script.google.com/macros/s/AQUI_TU_ID/exec'; 
+
+        // Recuperar el usuario activo
+        const usuarioLogueado = localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'admin';
+
+        document.addEventListener('DOMContentLoaded', cargarPedidos);
+
+        function cargarPedidos() {
+            const container = document.getElementById('container-pedidos');
+            container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando pedidos pendientes...</div>';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getPedidosPendientes',
+                    usuarioLogueado: usuarioLogueado
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    renderizarPedidos(data.pedidos);
+                } else {
+                    container.innerHTML = `<div class="no-data"><i class="fas fa-exclamation-circle"></i> Error: ${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                container.innerHTML = `<div class="no-data"><i class="fas fa-wifi"></i> Error de conexión con el servidor.</div>`;
+            });
+        }
+
+        function renderizarPedidos(pedidos) {
+            const container = document.getElementById('container-pedidos');
+            container.innerHTML = '';
+
+            if (!pedidos || pedidos.length === 0) {
+                container.innerHTML = '<div class="no-data"><i class="fas fa-inbox"></i> No tienes pedidos pendientes de autorizar.</div>';
+                return;
+            }
+
+            // Agrupar los ítems por Número de Pedido
+            const grupos = {};
+            pedidos.forEach(item => {
+                const numPedido = item.pedido;
+                if (!grupos[numPedido]) grupos[numPedido] = [];
+                grupos[numPedido].push(item);
+            });
+
+            // Construir la vista para cada pedido agrupado
+            Object.keys(grupos).forEach(numPedido => {
+                const items = grupos[numPedido];
+                const usuario = items[0].usuario;
+                const fecha = new Date(items[0].fecha).toLocaleString();
+
+                let html = `
+                <div class="order-card" id="pedido-card-${numPedido}">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <span><strong>Pedido #:</strong> ${numPedido}</span>
+                            <span><strong>Técnico:</strong> ${usuario}</span>
+                            <span><strong>Fecha:</strong> ${fecha}</span>
+                        </div>
+                        <div class="order-actions">
+                            <button class="btn btn-success" onclick="autorizarPedido('${numPedido}')">
+                                <i class="fas fa-check"></i> Autorizar Pedido
+                            </button>
+                            <button class="btn btn-danger" onclick="anularPedido('${numPedido}')">
+                                <i class="fas fa-ban"></i> Anular Pedido
+                            </button>
+                        </div>
+                    </div>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                items.forEach(item => {
+                    html += `
+                    <tr id="row-item-${item.rowNum}">
+                        <td>${item.codigo}</td>
+                        <td>${item.descripcion}</td>
+                        <td>
+                            <input type="number" class="qty-input" id="qty-${item.rowNum}" value="${item.cantidad}" min="1">
+                        </td>
+                        <td>
+                            <button class="btn btn-warning" style="padding:4px 8px; font-size:12px;" onclick="modificarCantidad(${item.rowNum})">
+                                <i class="fas fa-save"></i> Modificar
+                            </button>
+                            <button class="btn btn-danger" style="padding:4px 8px; font-size:12px; display:inline-flex;" onclick="eliminarItem(${item.rowNum})">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                </div>`;
+
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // --- Acciones del Sistema ---
+
+        function modificarCantidad(rowNum) {
+            const nuevaCant = document.getElementById(`qty-${rowNum}`).value;
+            if (!nuevaCant || nuevaCant <= 0) {
+                alert("Ingresa una cantidad válida.");
+                return;
+            }
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'modificarCantidad',
+                    rowNum: rowNum,
+                    nuevaCantidad: nuevaCant
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+
+        function eliminarItem(rowNum) {
+            if (!confirm("¿Seguro que deseas eliminar este ítem del pedido?")) return;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'eliminarItem',
+                    rowNum: rowNum
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(`row-item-${rowNum}`).remove();
+                alert("Ítem eliminado.");
+            });
+        }
+
+        function autorizarPedido(numPedido) {
+            if (!confirm(`¿Deseas autorizar todo el pedido #${numPedido}?`)) return;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'autorizarPedido',
+                    numPedido: numPedido
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Pedido autorizado.");
+                document.getElementById(`pedido-card-${numPedido}`).remove();
+            });
+        }
+
+        function anularPedido(numPedido) {
+            if (!confirm(`¿Deseas anular completamente el pedido #${numPedido}?`)) return;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'anularPedido',
+                    numPedido: numPedido
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Pedido anulado.");
+                document.getElementById(`pedido-card-${numPedido}`).remove();
+            });
+        }
+    </script>
+</body>
+</html>
