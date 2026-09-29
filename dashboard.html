@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
-    <!-- Agregamos FontAwesome para los íconos -->
+    <!-- FontAwesome para los íconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -14,6 +14,7 @@
             --background-color: #f4f7f6;
             --text-light: #ecf0f1;
             --text-dark: #333;
+            --submenu-bg: #233140;
         }
 
         body {
@@ -53,6 +54,7 @@
             padding: 0;
             margin: 0;
             flex-grow: 1;
+            overflow-y: auto;
         }
 
         .sidebar-menu li {
@@ -66,17 +68,51 @@
             color: var(--text-light);
             text-decoration: none;
             transition: background 0.2s ease, padding-left 0.2s ease;
+            cursor: pointer;
         }
 
-        .sidebar-menu a i {
+        .sidebar-menu a i.menu-icon {
             margin-right: 15px;
             width: 20px;
             text-align: center;
         }
 
+        .sidebar-menu a .arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+
         .sidebar-menu a:hover, .sidebar-menu a.active {
             background-color: var(--accent-color);
-            padding-left: 25px; /* Efecto de movimiento al pasar el ratón */
+            padding-left: 25px;
+        }
+
+        /* Submenús */
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background-color: var(--submenu-bg);
+            display: none;
+        }
+
+        .submenu a {
+            padding: 12px 20px 12px 45px;
+            font-size: 14px;
+        }
+
+        .submenu a:hover {
+            padding-left: 50px;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .has-submenu.open .submenu {
+            display: block;
+        }
+
+        .has-submenu.open > a .arrow {
+            transform: rotate(90deg);
         }
 
         .logout-btn {
@@ -86,6 +122,10 @@
             text-decoration: none;
             text-align: center;
             transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .logout-btn:hover {
@@ -116,9 +156,26 @@
         }
 
         .user-info i {
-            font-size: 24px;
-            margin-right: 10px;
+            font-size: 32px;
+            margin-right: 12px;
             color: var(--accent-color);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #7f8c8d;
         }
 
         /* Área de Contenido */
@@ -176,15 +233,46 @@
             <h3><i class="fas fa-database"></i> Mi Sistema</h3>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#" class="active"><i class="fas fa-home"></i> Inicio</a></li>
-            <!-- Estos módulos coinciden con la idea de tu pestaña de "Permisos" -->
-            <li><a href="#"><i class="fas fa-users"></i> Gestión de Usuarios</a></li>
-            <li><a href="#"><i class="fas fa-user-shield"></i> Roles y Permisos</a></li>
-            <li><a href="#"><i class="fas fa-box"></i> Inventario</a></li>
-            <li><a href="#"><i class="fas fa-chart-line"></i> Reportes</a></li>
-            <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+            <li>
+                <a href="#" class="active"><i class="fas fa-home menu-icon"></i> Inicio</a>
+            </li>
+            
+            <!-- Opción Pedidos -->
+            <li>
+                <a href="#"><i class="fas fa-shopping-cart menu-icon"></i> Pedidos</a>
+            </li>
+
+            <!-- Submenú Inventario (Equipos y Fibras) -->
+            <li class="has-submenu">
+                <a href="javascript:void(0)" onclick="toggleSubmenu(this)">
+                    <span><i class="fas fa-box menu-icon"></i> Inventario</span>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="#"><i class="fas fa-server menu-icon"></i> Equipos</a></li>
+                    <li><a href="#"><i class="fas fa-network-wired menu-icon"></i> Fibras</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <a href="#"><i class="fas fa-chart-line menu-icon"></i> Reportes</a>
+            </li>
+
+            <!-- Submenú Configuración (Gestión de Usuarios y Roles) -->
+            <li class="has-submenu">
+                <a href="javascript:void(0)" onclick="toggleSubmenu(this)">
+                    <span><i class="fas fa-cog menu-icon"></i> Configuración</span>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="#"><i class="fas fa-users menu-icon"></i> Gestión de Usuarios</a></li>
+                    <li><a href="#"><i class="fas fa-user-shield menu-icon"></i> Roles y Permisos</a></li>
+                </ul>
+            </li>
         </ul>
-        <a href="/" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        
+        <!-- Redirección al login.html -->
+        <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
     </nav>
 
     <!-- Contenido Principal -->
@@ -192,9 +280,14 @@
         <!-- Barra Superior -->
         <header class="topbar">
             <h2>Panel de Control</h2>
+            
+            <!-- Muestra Nombre y Abajo el Rol -->
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
-                <span id="userNameDisplay">Administrador</span>
+                <div class="user-details">
+                    <span class="user-name" id="userNameDisplay">Usuario Demo</span>
+                    <span class="user-role" id="userRoleDisplay">Administrador</span>
+                </div>
             </div>
         </header>
 
@@ -231,11 +324,24 @@
     </main>
 
     <script>
-        // Si usas localStorage para guardar el nombre del usuario desde el login:
-        // const userName = localStorage.getItem('userName');
-        // if(userName) {
-        //     document.getElementById('userNameDisplay').innerText = userName;
-        // }
+        // Función para desplegar los submenús (Inventario y Configuración)
+        function toggleSubmenu(element) {
+            const parentLi = element.parentElement;
+            parentLi.classList.toggle('open');
+        }
+
+        // Cargar datos dinámicos si provienen de localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = localStorage.getItem('userName');
+            const userRole = localStorage.getItem('userRole');
+
+            if (userName) {
+                document.getElementById('userNameDisplay').innerText = userName;
+            }
+            if (userRole) {
+                document.getElementById('userRoleDisplay').innerText = userRole;
+            }
+        });
     </script>
 </body>
 </html>
