@@ -133,7 +133,6 @@
       font-weight: 600;
       color: #2c3e50;
     }
-
   </style>
 </head>
 <body>
@@ -146,7 +145,7 @@
 
   <main class="container">
     
-    <!-- Contador de Pedidos -->
+    <!-- Alerta / Contador de Pedidos -->
     <div class="alert-panel" id="panel-alertas" style="display: none;">
       <div class="alert-text">Tus pedidos pendientes por autorizar</div>
       <div class="badge" id="badge-pendientes">...</div>
@@ -155,27 +154,31 @@
     <!-- Menú de Módulos -->
     <div class="grid-menu">
       
+      <!-- Módulo: Autorizar Pedidos (Admin y Coordinador) -->
       <a href="autorizar.html" class="card" id="modulo-autorizar" style="display: none;">
         <div class="card-icon">📝</div>
         <div class="card-title">Autorizar Pedidos</div>
       </a>
 
-      <a href="materiales.html" class="card" id="modulo-materiales" style="display: none;">
-        <div class="card-icon">📦</div>
-        <div class="card-title">Configuración de Materiales</div>
-      </a>
-
-      <a href="fibras.html" class="card" id="modulo-fibras" style="display: none;">
-        <div class="card-icon">🧵</div>
-        <div class="card-title">Configuración de Fibras</div>
-      </a>
-
+      <!-- Módulo: Reportes (Admin y Coordinador) -->
       <a href="reportes.html" class="card" id="modulo-reportes" style="display: none;">
         <div class="card-icon">📊</div>
         <div class="card-title">Reportes</div>
       </a>
 
-      <!-- Módulo exclusivo de Administradores -->
+      <!-- Módulo: Materiales (Exclusivo Admin) -->
+      <a href="materiales.html" class="card" id="modulo-materiales" style="display: none;">
+        <div class="card-icon">📦</div>
+        <div class="card-title">Configuración de Materiales</div>
+      </a>
+
+      <!-- Módulo: Fibras (Exclusivo Admin) -->
+      <a href="fibras.html" class="card" id="modulo-fibras" style="display: none;">
+        <div class="card-icon">🧵</div>
+        <div class="card-title">Configuración de Fibras</div>
+      </a>
+
+      <!-- Módulo: Usuarios (Exclusivo Admin) -->
       <a href="usuarios.html" class="card" id="modulo-admin" style="display: none;">
         <div class="card-icon">⚙️</div>
         <div class="card-title">Gestión de Usuarios y Permisos</div>
@@ -186,121 +189,113 @@
   </main>
 
   <script>
-  // ==========================================
-  // URL DEL SCRIPT DE GOOGLE
-  // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytHjsAF6wlmcbEzRIDO6D6i7RSe--B7VU5_w9wuPIQ9uZiNAtCkw_dkulzigpbo1-GEQ/exec";
+    // URL DE GOOGLE APPS SCRIPT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytHjsAF6wlmcbEzRIDO6D6i7RSe--B7VU5_w9wuPIQ9uZiNAtCkw_dkulzigpbo1-GEQ/exec";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    
-    // 1. VALIDAR SESIÓN ACTIVA
-    const sesionString = localStorage.getItem('sesionPWA');
-    if (!sesionString) {
-      window.location.href = 'index.html';
-      return;
-    }
-
-    // 2. MOSTRAR DATOS DEL USUARIO
-    const usuario = JSON.parse(sesionString);
-    const nombreCorto = usuario.nombre ? usuario.nombre.split(" ").slice(0, 2).join(" ") : usuario.username; 
-    document.getElementById('display-name').textContent = nombreCorto;
-
-    // Elementos del DOM
-    const moduloAutorizar = document.getElementById('modulo-autorizar');
-    const moduloMateriales = document.getElementById('modulo-materiales');
-    const moduloFibras = document.getElementById('modulo-fibras');
-    const moduloReportes = document.getElementById('modulo-reportes');
-    const moduloAdmin = document.getElementById('modulo-admin');
-    const panelAlertas = document.getElementById('panel-alertas');
-
-    // CONVERSIÓN FLEXIBLE DE ROLES (evita fallos si viene como "true" en texto)
-    const isAdmin = usuario.isAdmin === true || String(usuario.isAdmin).toLowerCase() === "true";
-    const isCoordinador = usuario.isCoordinador === true || String(usuario.isCoordinador).toLowerCase() === "true";
-
-    // 3. APLICAR PERMISOS DE VISIBILIDAD SEGÚN ROL
-    if (isAdmin) {
-      // ADMIN: Acceso Completo
-      if (moduloAutorizar) moduloAutorizar.style.display = 'flex';
-      if (moduloMateriales) moduloMateriales.style.display = 'flex';
-      if (moduloFibras) moduloFibras.style.display = 'flex';
-      if (moduloReportes) moduloReportes.style.display = 'flex';
-      if (moduloAdmin) moduloAdmin.style.display = 'flex';
-      if (panelAlertas) panelAlertas.style.display = 'flex';
+    document.addEventListener("DOMContentLoaded", () => {
       
-      obtenerPendientes(usuario.username);
+      // 1. VALIDAR SESIÓN ACTIVA
+      const sesionString = localStorage.getItem('sesionPWA');
+      if (!sesionString) {
+        window.location.href = 'index.html';
+        return;
+      }
 
-    } else if (isCoordinador) {
-      // COORDINADOR: Solo Autorizar Pedidos y Reportes
-      if (moduloAutorizar) moduloAutorizar.style.display = 'flex';
-      if (moduloReportes) moduloReportes.style.display = 'flex';
-      if (moduloMateriales) moduloMateriales.style.display = 'none';
-      if (moduloFibras) moduloFibras.style.display = 'none';
-      if (moduloAdmin) moduloAdmin.style.display = 'none';
-      if (panelAlertas) panelAlertas.style.display = 'flex';
-      
-      obtenerPendientes(usuario.username);
+      // 2. OBTENER DATOS DE USUARIO Y VALIDAR ROLES
+      const usuario = JSON.parse(sesionString);
+      const nombreCorto = usuario.nombre ? usuario.nombre.split(" ").slice(0, 2).join(" ") : usuario.username; 
+      document.getElementById('display-name').textContent = nombreCorto;
 
-    } else {
-      // USUARIO ESTÁNDAR: Solo Reportes
-      if (moduloReportes) moduloReportes.style.display = 'flex';
-      if (moduloAutorizar) moduloAutorizar.style.display = 'none';
-      if (moduloMateriales) moduloMateriales.style.display = 'none';
-      if (moduloFibras) moduloFibras.style.display = 'none';
-      if (moduloAdmin) moduloAdmin.style.display = 'none';
-      if (panelAlertas) panelAlertas.style.display = 'none';
-    }
+      // Conversión segura de valores booleanos
+      const isAdmin = usuario.isAdmin === true || String(usuario.isAdmin).toLowerCase() === "true";
+      const isCoordinador = usuario.isCoordinador === true || String(usuario.isCoordinador).toLowerCase() === "true";
 
-    // 4. CERRAR SESIÓN
-    const btnLogout = document.getElementById('btn-logout');
-    if (btnLogout) {
-      btnLogout.addEventListener('click', () => {
+      // Referencias DOM
+      const modAutorizar = document.getElementById('modulo-autorizar');
+      const modReportes  = document.getElementById('modulo-reportes');
+      const modMateriales= document.getElementById('modulo-materiales');
+      const modFibras    = document.getElementById('modulo-fibras');
+      const modAdmin     = document.getElementById('modulo-admin');
+      const panelAlertas = document.getElementById('panel-alertas');
+
+      // 3. APLICAR PERMISOS ESTRICTOS DE VISIBILIDAD
+      if (isAdmin) {
+        // ADMIN: Acceso TOTAL
+        modAutorizar.style.display  = 'flex';
+        modReportes.style.display   = 'flex';
+        modMateriales.style.display = 'flex';
+        modFibras.style.display     = 'flex';
+        modAdmin.style.display      = 'flex';
+        panelAlertas.style.display  = 'flex';
+
+        obtenerPendientes(usuario.username);
+
+      } else if (isCoordinador) {
+        // COORDINADOR: ÚNICAMENTE Autorizar Pedidos y Reportes
+        modAutorizar.style.display  = 'flex';
+        modReportes.style.display   = 'flex';
+
+        // Bloquear y ocultar el resto
+        modMateriales.style.display = 'none';
+        modFibras.style.display     = 'none';
+        modAdmin.style.display      = 'none';
+        panelAlertas.style.display  = 'flex';
+
+        obtenerPendientes(usuario.username);
+
+      } else {
+        // USUARIO NORMAL
+        modReportes.style.display   = 'flex';
+        modAutorizar.style.display  = 'none';
+        modMateriales.style.display = 'none';
+        modFibras.style.display     = 'none';
+        modAdmin.style.display      = 'none';
+        panelAlertas.style.display  = 'none';
+      }
+
+      // 4. BOTÓN CERRAR SESIÓN
+      document.getElementById('btn-logout').addEventListener('click', () => {
         if (confirm("¿Seguro que deseas cerrar sesión?")) {
           localStorage.removeItem('sesionPWA');
           window.location.href = 'index.html';
         }
       });
-    }
-  });
+    });
 
-  /**
-   * Consulta la cantidad de pedidos pendientes filtrados por usuario (POST)
-   */
-  async function obtenerPendientes(username) {
-    const badge = document.getElementById('badge-pendientes');
-    if (!badge) return;
+    /**
+     * Consulta por POST la cantidad de pedidos pendientes del usuario logueado
+     */
+    async function obtenerPendientes(username) {
+      const badge = document.getElementById('badge-pendientes');
+      if (!badge) return;
 
-    try {
-      const payload = JSON.stringify({
-        action: "listarPendientes",
-        username: username
-      });
+      try {
+        const payload = JSON.stringify({
+          action: "listarPendientes",
+          username: username
+        });
 
-      const respuesta = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: payload
-      });
+        const respuesta = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payload
+        });
 
-      const idsPendientes = await respuesta.json();
-      
-      if (Array.isArray(idsPendientes)) {
-        badge.textContent = idsPendientes.length;
-
-        if (idsPendientes.length > 0) {
-          badge.style.background = "#f44336"; // Rojo
+        const idsPendientes = await respuesta.json();
+        
+        if (Array.isArray(idsPendientes)) {
+          badge.textContent = idsPendientes.length;
+          badge.style.background = idsPendientes.length > 0 ? "#f44336" : "#4caf50";
         } else {
-          badge.style.background = "#4caf50"; // Verde
+          badge.textContent = "0";
+          badge.style.background = "#4caf50";
         }
-      } else {
-        badge.textContent = "0";
-        badge.style.background = "#4caf50";
+      } catch (error) {
+        console.error("Error obteniendo pendientes:", error);
+        badge.textContent = "!";
+        badge.style.background = "#ff9800";
       }
-    } catch (error) {
-      console.error("Error obteniendo pendientes:", error);
-      badge.textContent = "!";
-      badge.style.background = "#ff9800";
     }
-  }
-</script>
+  </script>
 </body>
 </html>
