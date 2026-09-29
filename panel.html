@@ -186,107 +186,121 @@
   </main>
 
   <script>
-    // ==========================================
-    // URL DEL SCRIPT DE GOOGLE
-    // ==========================================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytHjsAF6wlmcbEzRIDO6D6i7RSe--B7VU5_w9wuPIQ9uZiNAtCkw_dkulzigpbo1-GEQ/exec";
+  // ==========================================
+  // URL DEL SCRIPT DE GOOGLE
+  // ==========================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytHjsAF6wlmcbEzRIDO6D6i7RSe--B7VU5_w9wuPIQ9uZiNAtCkw_dkulzigpbo1-GEQ/exec";
 
-    document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
+    
+    // 1. VALIDAR SESIÓN ACTIVA
+    const sesionString = localStorage.getItem('sesionPWA');
+    if (!sesionString) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // 2. MOSTRAR DATOS DEL USUARIO
+    const usuario = JSON.parse(sesionString);
+    const nombreCorto = usuario.nombre ? usuario.nombre.split(" ").slice(0, 2).join(" ") : usuario.username; 
+    document.getElementById('display-name').textContent = nombreCorto;
+
+    // Elementos del DOM
+    const moduloAutorizar = document.getElementById('modulo-autorizar');
+    const moduloMateriales = document.getElementById('modulo-materiales');
+    const moduloFibras = document.getElementById('modulo-fibras');
+    const moduloReportes = document.getElementById('modulo-reportes');
+    const moduloAdmin = document.getElementById('modulo-admin');
+    const panelAlertas = document.getElementById('panel-alertas');
+
+    // CONVERSIÓN FLEXIBLE DE ROLES (evita fallos si viene como "true" en texto)
+    const isAdmin = usuario.isAdmin === true || String(usuario.isAdmin).toLowerCase() === "true";
+    const isCoordinador = usuario.isCoordinador === true || String(usuario.isCoordinador).toLowerCase() === "true";
+
+    // 3. APLICAR PERMISOS DE VISIBILIDAD SEGÚN ROL
+    if (isAdmin) {
+      // ADMIN: Acceso Completo
+      if (moduloAutorizar) moduloAutorizar.style.display = 'flex';
+      if (moduloMateriales) moduloMateriales.style.display = 'flex';
+      if (moduloFibras) moduloFibras.style.display = 'flex';
+      if (moduloReportes) moduloReportes.style.display = 'flex';
+      if (moduloAdmin) moduloAdmin.style.display = 'flex';
+      if (panelAlertas) panelAlertas.style.display = 'flex';
       
-      // 1. VALIDAR SESIÓN ACTIVA
-      const sesionString = localStorage.getItem('sesionPWA');
-      if (!sesionString) {
-        window.location.href = 'index.html';
-        return;
-      }
+      obtenerPendientes(usuario.username);
 
-      // 2. MOSTRAR DATOS DEL USUARIO
-      const usuario = JSON.parse(sesionString);
-      const nombreCorto = usuario.nombre ? usuario.nombre.split(" ").slice(0, 2).join(" ") : usuario.username; 
-      document.getElementById('display-name').textContent = nombreCorto;
+    } else if (isCoordinador) {
+      // COORDINADOR: Solo Autorizar Pedidos y Reportes
+      if (moduloAutorizar) moduloAutorizar.style.display = 'flex';
+      if (moduloReportes) moduloReportes.style.display = 'flex';
+      if (moduloMateriales) moduloMateriales.style.display = 'none';
+      if (moduloFibras) moduloFibras.style.display = 'none';
+      if (moduloAdmin) moduloAdmin.style.display = 'none';
+      if (panelAlertas) panelAlertas.style.display = 'flex';
+      
+      obtenerPendientes(usuario.username);
 
-      // Elementos del DOM
-      const moduloAutorizar = document.getElementById('modulo-autorizar');
-      const moduloMateriales = document.getElementById('modulo-materiales');
-      const moduloFibras = document.getElementById('modulo-fibras');
-      const moduloReportes = document.getElementById('modulo-reportes');
-      const moduloAdmin = document.getElementById('modulo-admin');
-      const panelAlertas = document.getElementById('panel-alertas');
+    } else {
+      // USUARIO ESTÁNDAR: Solo Reportes
+      if (moduloReportes) moduloReportes.style.display = 'flex';
+      if (moduloAutorizar) moduloAutorizar.style.display = 'none';
+      if (moduloMateriales) moduloMateriales.style.display = 'none';
+      if (moduloFibras) moduloFibras.style.display = 'none';
+      if (moduloAdmin) moduloAdmin.style.display = 'none';
+      if (panelAlertas) panelAlertas.style.display = 'none';
+    }
 
-      // 3. APLICAR PERMISOS DE VISIBILIDAD SEGÚN ROL
-      if (usuario.isAdmin === true) {
-        // ADMIN: Acceso Completo a todos los módulos
-        moduloAutorizar.style.display = 'flex';
-        moduloMateriales.style.display = 'flex';
-        moduloFibras.style.display = 'flex';
-        moduloReportes.style.display = 'flex';
-        moduloAdmin.style.display = 'flex';
-        panelAlertas.style.display = 'flex';
-        
-        obtenerPendientes(usuario.username);
-
-      } else if (usuario.isCoordinador === true) {
-        // COORDINADOR: Solo autorizar.html y reportes.html
-        moduloAutorizar.style.display = 'flex';
-        moduloReportes.style.display = 'flex';
-        moduloMateriales.style.display = 'none';
-        moduloFibras.style.display = 'none';
-        moduloAdmin.style.display = 'none';
-        panelAlertas.style.display = 'flex';
-        
-        obtenerPendientes(usuario.username);
-
-      } else {
-        // OTROS ROLES: Ajusta según necesites
-        moduloReportes.style.display = 'flex';
-      }
-
-      // 4. CERRAR SESIÓN
-      document.getElementById('btn-logout').addEventListener('click', () => {
+    // 4. CERRAR SESIÓN
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', () => {
         if (confirm("¿Seguro que deseas cerrar sesión?")) {
           localStorage.removeItem('sesionPWA');
           window.location.href = 'index.html';
         }
       });
-    });
-
-    /**
-     * Consulta la cantidad de pedidos pendientes filtrados por usuario (POST)
-     */
-    async function obtenerPendientes(username) {
-      const badge = document.getElementById('badge-pendientes');
-      try {
-        const payload = JSON.stringify({
-          action: "listarPendientes",
-          username: username
-        });
-
-        const respuesta = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: payload
-        });
-
-        const idsPendientes = await respuesta.json();
-        
-        if (Array.isArray(idsPendientes)) {
-          badge.textContent = idsPendientes.length;
-
-          if (idsPendientes.length > 0) {
-            badge.style.background = "#f44336"; // Rojo si hay pendientes
-          } else {
-            badge.style.background = "#4caf50"; // Verde si no hay pendientes
-          }
-        } else {
-          badge.textContent = "0";
-          badge.style.background = "#4caf50";
-        }
-      } catch (error) {
-        console.error("Error obteniendo pendientes:", error);
-        badge.textContent = "!";
-        badge.style.background = "#ff9800";
-      }
     }
-  </script>
+  });
+
+  /**
+   * Consulta la cantidad de pedidos pendientes filtrados por usuario (POST)
+   */
+  async function obtenerPendientes(username) {
+    const badge = document.getElementById('badge-pendientes');
+    if (!badge) return;
+
+    try {
+      const payload = JSON.stringify({
+        action: "listarPendientes",
+        username: username
+      });
+
+      const respuesta = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: payload
+      });
+
+      const idsPendientes = await respuesta.json();
+      
+      if (Array.isArray(idsPendientes)) {
+        badge.textContent = idsPendientes.length;
+
+        if (idsPendientes.length > 0) {
+          badge.style.background = "#f44336"; // Rojo
+        } else {
+          badge.style.background = "#4caf50"; // Verde
+        }
+      } else {
+        badge.textContent = "0";
+        badge.style.background = "#4caf50";
+      }
+    } catch (error) {
+      console.error("Error obteniendo pendientes:", error);
+      badge.textContent = "!";
+      badge.style.background = "#ff9800";
+    }
+  }
+</script>
 </body>
 </html>
