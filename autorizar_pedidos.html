@@ -329,11 +329,10 @@
     </div>
 
     <script>
-        // REEMPLAZA CON LA URL DE TU GOOGLE APPS SCRIPT
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
-        // Usuario coordinador logueado
-        const usuarioCoordinador = localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'coordinador';
+        // Recuperar el identificador del usuario en sesión
+        const usuarioCoordinador = localStorage.getItem('usuarioLogueado') || localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'coordinador';
 
         let agrupadosPorSolicitud = {};
 
@@ -378,7 +377,6 @@
                 return;
             }
 
-            // Agrupar ítems por ID de solicitud
             pedidos.forEach(item => {
                 const idSolicitud = item.solicitud || item.pedido;
                 if (!agrupadosPorSolicitud[idSolicitud]) {
@@ -387,7 +385,6 @@
                 agrupadosPorSolicitud[idSolicitud].push(item);
             });
 
-            // Llenar el combo desplegable
             Object.keys(agrupadosPorSolicitud).forEach(idSol => {
                 const opt = document.createElement('option');
                 opt.value = idSol;
@@ -413,7 +410,6 @@
 
             const items = agrupadosPorSolicitud[solId];
             
-            // Establecer fecha/hora real del pedido y el técnico
             document.getElementById('usuarioTecnico').value = items[0].usuario;
             document.getElementById('fechaConsulta').value = items[0].fecha || '-';
             document.getElementById('badgeEstado').textContent = items[0].estado || 'Pendiente';
@@ -438,7 +434,6 @@
             });
         }
 
-        // --- Eliminar un ítem (cambia a estado 'Eliminado' en la BD) ---
         function eliminarItemRow(rowNum) {
             if (!confirm('¿Deseas eliminar este ítem del pedido?')) return;
 
@@ -455,7 +450,6 @@
                 const tr = document.getElementById(`row-item-${rowNum}`);
                 if (tr) tr.remove();
                 
-                // Si la tabla queda vacía tras eliminar la fila
                 if (document.querySelectorAll('#tableBody tr').length === 0) {
                     cargarPedidos();
                 }
@@ -463,7 +457,6 @@
             .catch(err => alert('Error al procesar la solicitud.'));
         }
 
-        // --- Autorizar Pedido Completo (Guarda cantidades autorizadas y cambia a 'Realizado') ---
         function autorizarPedidoActual() {
             const select = document.getElementById('selectSolicitud');
             const idSolicitud = select.value;
@@ -502,7 +495,6 @@
             .catch(err => alert('Error al autorizar el pedido.'));
         }
 
-        // --- Anular Pedido Completo (Cambia estado a 'Anulado') ---
         function anularPedidoActual() {
             const select = document.getElementById('selectSolicitud');
             const idSolicitud = select.value;
