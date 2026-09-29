@@ -134,13 +134,6 @@
       color: #2c3e50;
     }
 
-    /* Ocultar módulo de administrador por defecto */
-    .admin-module {
-      display: none;
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-    }
-
   </style>
 </head>
 <body>
@@ -154,7 +147,7 @@
   <main class="container">
     
     <!-- Contador de Pedidos -->
-    <div class="alert-panel coordinador-module" id="panel-alertas" style="display: none;">
+    <div class="alert-panel" id="panel-alertas" style="display: none;">
       <div class="alert-text">Tus pedidos pendientes por autorizar</div>
       <div class="badge" id="badge-pendientes">...</div>
     </div>
@@ -162,28 +155,28 @@
     <!-- Menú de Módulos -->
     <div class="grid-menu">
       
-      <a href="autorizar.html" class="card coordinador-module" id="modulo-autorizar" style="display: none;">
-      <div class="card-icon">📝</div>
-      <div class="card-title">Autorizar Pedidos</div>
-    </a>
+      <a href="autorizar.html" class="card" id="modulo-autorizar" style="display: none;">
+        <div class="card-icon">📝</div>
+        <div class="card-title">Autorizar Pedidos</div>
+      </a>
 
-      <a href="materiales.html" class="card">
+      <a href="materiales.html" class="card" id="modulo-materiales" style="display: none;">
         <div class="card-icon">📦</div>
         <div class="card-title">Configuración de Materiales</div>
       </a>
 
-      <a href="fibras.html" class="card">
+      <a href="fibras.html" class="card" id="modulo-fibras" style="display: none;">
         <div class="card-icon">🧵</div>
         <div class="card-title">Configuración de Fibras</div>
       </a>
 
-      <a href="reportes.html" class="card">
+      <a href="reportes.html" class="card" id="modulo-reportes" style="display: none;">
         <div class="card-icon">📊</div>
         <div class="card-title">Reportes</div>
       </a>
 
       <!-- Módulo exclusivo de Administradores -->
-      <a href="usuarios.html" class="card admin-module" id="modulo-admin">
+      <a href="usuarios.html" class="card" id="modulo-admin" style="display: none;">
         <div class="card-icon">⚙️</div>
         <div class="card-title">Gestión de Usuarios y Permisos</div>
       </a>
@@ -194,70 +187,104 @@
 
   <script>
     // ==========================================
-    // URL DEL SCRIPT (Para consultar los pedidos pendientes)
+    // URL DEL SCRIPT DE GOOGLE
     // ==========================================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzIhkMCH3oIUSnPMaQOgp2KgIaZzPL90YfcYP0gD3RJlytfHhJELsDEi5cpXKFba3hUwQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytHjsAF6wlmcbEzRIDO6D6i7RSe--B7VU5_w9wuPIQ9uZiNAtCkw_dkulzigpbo1-GEQ/exec";
 
     document.addEventListener("DOMContentLoaded", () => {
       
       // 1. VALIDAR SESIÓN ACTIVA
       const sesionString = localStorage.getItem('sesionPWA');
       if (!sesionString) {
-        // Si no hay sesión, regresarlo al Login
         window.location.href = 'index.html';
         return;
       }
 
       // 2. MOSTRAR DATOS DEL USUARIO
       const usuario = JSON.parse(sesionString);
-      
-      // Extraer solo el primer nombre y apellido para no saturar la barra
-      const nombreCorto = usuario.nombre.split(" ").slice(0, 2).join(" "); 
+      const nombreCorto = usuario.nombre ? usuario.nombre.split(" ").slice(0, 2).join(" ") : usuario.username; 
       document.getElementById('display-name').textContent = nombreCorto;
 
-      // 3. ACTIVAR MÓDULOS SEGÚN ROLES
+      // Elementos del DOM
+      const moduloAutorizar = document.getElementById('modulo-autorizar');
+      const moduloMateriales = document.getElementById('modulo-materiales');
+      const moduloFibras = document.getElementById('modulo-fibras');
+      const moduloReportes = document.getElementById('modulo-reportes');
+      const moduloAdmin = document.getElementById('modulo-admin');
+      const panelAlertas = document.getElementById('panel-alertas');
+
+      // 3. APLICAR PERMISOS DE VISIBILIDAD SEGÚN ROL
       if (usuario.isAdmin === true) {
-        document.getElementById('modulo-admin').style.display = 'flex';
-      }
-      
-      // Mostrar Autorización solo a Coordinadores o Admins
-      if (usuario.isCoordinador === true || usuario.isAdmin === true) {
-        document.getElementById('panel-alertas').style.display = 'flex';
-        document.getElementById('modulo-autorizar').style.display = 'flex';
-        // Pasar el username del coordinador para que cuente solo SUS pedidos
-        obtenerPendientes(usuario.username); 
+        // ADMIN: Acceso Completo a todos los módulos
+        moduloAutorizar.style.display = 'flex';
+        moduloMateriales.style.display = 'flex';
+        moduloFibras.style.display = 'flex';
+        moduloReportes.style.display = 'flex';
+        moduloAdmin.style.display = 'flex';
+        panelAlertas.style.display = 'flex';
+        
+        obtenerPendientes(usuario.username);
+
+      } else if (usuario.isCoordinador === true) {
+        // COORDINADOR: Solo autorizar.html y reportes.html
+        moduloAutorizar.style.display = 'flex';
+        moduloReportes.style.display = 'flex';
+        moduloMateriales.style.display = 'none';
+        moduloFibras.style.display = 'none';
+        moduloAdmin.style.display = 'none';
+        panelAlertas.style.display = 'flex';
+        
+        obtenerPendientes(usuario.username);
+
+      } else {
+        // OTROS ROLES: Ajusta según necesites
+        moduloReportes.style.display = 'flex';
       }
 
-      // 4. CONSULTAR CANTIDAD DE PEDIDOS PENDIENTES
-      obtenerPendientes();
-
-      // 5. CERRAR SESIÓN
+      // 4. CERRAR SESIÓN
       document.getElementById('btn-logout').addEventListener('click', () => {
-        if(confirm("¿Seguro que deseas cerrar sesión?")) {
+        if (confirm("¿Seguro que deseas cerrar sesión?")) {
           localStorage.removeItem('sesionPWA');
           window.location.href = 'index.html';
         }
       });
     });
 
-    async function obtenerPendientes() {
+    /**
+     * Consulta la cantidad de pedidos pendientes filtrados por usuario (POST)
+     */
+    async function obtenerPendientes(username) {
       const badge = document.getElementById('badge-pendientes');
       try {
-        const url = `${SCRIPT_URL}?action=listarPendientes&_=${Date.now()}`;
-        const respuesta = await fetch(url);
+        const payload = JSON.stringify({
+          action: "listarPendientes",
+          username: username
+        });
+
+        const respuesta = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payload
+        });
+
         const idsPendientes = await respuesta.json();
         
-        // La API devuelve un arreglo con los IDs pendientes, solo contamos su longitud
-        badge.textContent = idsPendientes.length;
+        if (Array.isArray(idsPendientes)) {
+          badge.textContent = idsPendientes.length;
 
-        if (idsPendientes.length > 0) {
-          badge.style.background = "#f44336"; // Rojo si hay pendientes
+          if (idsPendientes.length > 0) {
+            badge.style.background = "#f44336"; // Rojo si hay pendientes
+          } else {
+            badge.style.background = "#4caf50"; // Verde si no hay pendientes
+          }
         } else {
-          badge.style.background = "#4caf50"; // Verde si está todo al día
+          badge.textContent = "0";
+          badge.style.background = "#4caf50";
         }
       } catch (error) {
         console.error("Error obteniendo pendientes:", error);
         badge.textContent = "!";
+        badge.style.background = "#ff9800";
       }
     }
   </script>
