@@ -272,8 +272,8 @@
             </li>
         </ul>
         
-        <!-- Redirección al login.html -->
-        <a href="index.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        <!-- Redirección al login y cierre de sesión -->
+        <a href="index.html" class="logout-btn" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
     </nav>
 
     <!-- Contenido Principal -->
@@ -286,8 +286,8 @@
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <div class="user-details">
-                    <span class="user-name" id="userNameDisplay">Usuario Demo</span>
-                    <span class="user-role" id="userRoleDisplay">Administrador</span>
+                    <span class="user-name" id="userNameDisplay">Cargando...</span>
+                    <span class="user-role" id="userRoleDisplay">-</span>
                 </div>
             </div>
         </header>
@@ -317,7 +317,7 @@
                     <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div class="card-info">
                         <h4>Pedidos por aprobar</h4>
-                        <p>3</p>
+                        <p id="pedidosPendientesCount"><i class="fas fa-spinner fa-spin" style="font-size: 18px;"></i></p>
                     </div>
                 </div>
             </div>
@@ -325,16 +325,25 @@
     </main>
 
     <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
+
         // Función para desplegar los submenús (Inventario y Configuración)
         function toggleSubmenu(element) {
             const parentLi = element.parentElement;
             parentLi.classList.toggle('open');
         }
 
-        // Cargar datos dinámicos si provienen de localStorage
+        // Cargar datos dinámicos al iniciar la página
         document.addEventListener('DOMContentLoaded', () => {
+            // Validar sesión activa
+            if (localStorage.getItem('sesionIniciada') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+
             const userName = localStorage.getItem('userName');
             const userRole = localStorage.getItem('userRole');
+            const usuarioLogueado = localStorage.getItem('usuarioLogueado') || localStorage.getItem('userName') || localStorage.getItem('userEmail');
 
             if (userName) {
                 document.getElementById('userNameDisplay').innerText = userName;
@@ -342,7 +351,44 @@
             if (userRole) {
                 document.getElementById('userRoleDisplay').innerText = userRole;
             }
+
+            // Consultar únicamente los pedidos pendientes de sus técnicos a cargo
+            if (usuarioLogueado) {
+                obtenerPedidosPendientes(usuarioLogueado);
+            }
         });
+
+        function obtenerPedidosPendientes(usuario) {
+            const countElement = document.getElementById('pedidosPendientesCount');
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getPedidosPendientes',
+                    usuarioLogueado: usuario
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.pedidos && data.pedidos.length > 0) {
+                    // Se obtienen las solicitudes o pedidos únicos
+                    const solicitudesUnicas = new Set(data.pedidos.map(p => p.solicitud || p.pedido));
+                    countElement.innerText = solicitudesUnicas.size;
+                } else {
+                    countElement.innerText = '0';
+                }
+            })
+            .catch(err => {
+                console.error('Error al obtener conteo de pedidos:', err);
+                countElement.innerText = '0';
+            });
+        }
+
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
     </script>
 </body>
 </html>
