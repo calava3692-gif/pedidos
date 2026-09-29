@@ -145,45 +145,49 @@
         // IMPORTANTE: Reemplaza esta URL con la tuya generada en Google Apps Script
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Evita que la página se recargue
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const submitBtn = document.querySelector('.btn-submit');
-            
-            submitBtn.textContent = 'Verificando...';
-            submitBtn.disabled = true;
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const submitBtn = document.querySelector('.btn-submit');
+    
+    submitBtn.textContent = 'Verificando...';
+    submitBtn.disabled = true;
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ email: email, password: password }),
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Guardar en el navegador que el usuario ya inició sesión
-                    localStorage.setItem('sesionIniciada', 'true');
-                    localStorage.setItem('nombreUsuario', data.nombre);
-                    
-                    // Redirigir a dashboard.html
-                    window.location.href = 'dashboard.html';
-                } else {
-                    alert('Acceso denegado: ' + data.message);
-                    submitBtn.textContent = 'Iniciar Sesión';
-                    submitBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                alert('Error de conexión con la base de datos.');
-                console.error('Error!', error.message);
-                submitBtn.textContent = 'Iniciar Sesión';
-                submitBtn.disabled = false;
-            });
-        });
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'login',
+            email: email,
+            password: password
+        }),
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Guardar datos del usuario para el Dashboard
+            localStorage.setItem('sesionIniciada', 'true');
+            localStorage.setItem('userName', data.nombre);
+            localStorage.setItem('userRole', data.rol);
+            localStorage.setItem('userEmail', data.correo);
+            localStorage.setItem('usuarioLogueado', data.usuario);
+            
+            // Redirigir al Dashboard
+            window.location.href = 'dashboard.html';
+        } else {
+            alert('Acceso denegado: ' + data.message);
+            submitBtn.textContent = 'Iniciar Sesión';
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(err => {
+        alert('Error de conexión con el servidor.');
+        submitBtn.textContent = 'Iniciar Sesión';
+        submitBtn.disabled = false;
+    });
+});
     </script>
 </body>
 </html>
