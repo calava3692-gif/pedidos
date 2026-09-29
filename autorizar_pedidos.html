@@ -20,8 +20,6 @@
             --btn-secondary-hover: #31435e;
             --btn-danger: #8f2d2d;
             --btn-danger-hover: #b83a3a;
-            --btn-warning: #9a6211;
-            --btn-warning-hover: #be7a17;
             --badge-pending-bg: #9a4b11;
             --badge-pending-text: #fef3c7;
             --accent-blue: #38bdf8;
@@ -178,7 +176,7 @@
             text-align: center;
             padding: 6px;
             border-radius: 6px;
-            width: 60px;
+            width: 65px;
             font-size: 14px;
         }
 
@@ -186,27 +184,21 @@
             border-color: var(--accent-blue);
         }
 
-        /* Botones de acción pequeña dentro de la tabla */
-        .btn-sm {
-            padding: 5px 9px;
+        .btn-sm-danger {
+            background-color: var(--btn-danger);
             border: none;
             border-radius: 5px;
-            font-size: 12px;
+            padding: 6px 10px;
+            color: white;
             cursor: pointer;
             transition: background-color 0.2s ease;
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
         }
 
-        .btn-sm-warning { background-color: var(--btn-warning); }
-        .btn-sm-warning:hover { background-color: var(--btn-warning-hover); }
+        .btn-sm-danger:hover {
+            background-color: var(--btn-danger-hover);
+        }
 
-        .btn-sm-danger { background-color: var(--btn-danger); }
-        .btn-sm-danger:hover { background-color: var(--btn-danger-hover); }
-
-        /* Botones principales */
+        /* Botones de acción principal */
         .actions-container {
             display: flex;
             flex-direction: column;
@@ -286,7 +278,7 @@
 
             <div class="form-group">
                 <label for="fechaConsulta">FECHA DE CONSULTA:</label>
-                <input type="text" id="fechaConsulta" class="form-control" readonly>
+                <input type="text" id="fechaConsulta" class="form-control" readonly placeholder="-">
             </div>
 
             <div class="form-group">
@@ -311,7 +303,7 @@
                         <th>Detalle</th>
                         <th style="text-align: center;">Solicitado</th>
                         <th style="text-align: center;">Autorizado</th>
-                        <th style="text-align: center;">Acciones</th>
+                        <th style="text-align: center;">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -345,25 +337,9 @@
 
         let agrupadosPorSolicitud = {};
 
-        document.addEventListener('DOMContentLoaded', () => {
-            actualizarFechaConsulta();
-            cargarPedidos();
-        });
-
-        function actualizarFechaConsulta() {
-            const ahora = new Date();
-            const dia = String(ahora.getDate()).padStart(2, '0');
-            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-            const anio = ahora.getFullYear();
-            const hora = String(ahora.getHours()).padStart(2, '0');
-            const min = String(ahora.getMinutes()).padStart(2, '0');
-            const seg = String(ahora.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('fechaConsulta').value = `${dia}/${mes}/${anio} ${hora}:${min}:${seg}`;
-        }
+        document.addEventListener('DOMContentLoaded', cargarPedidos);
 
         function cargarPedidos() {
-            actualizarFechaConsulta();
             const select = document.getElementById('selectSolicitud');
             select.innerHTML = '<option value="">Cargando...</option>';
 
@@ -397,11 +373,12 @@
             if (!pedidos || pedidos.length === 0) {
                 select.innerHTML = '<option value="">Sin pendientes</option>';
                 document.getElementById('usuarioTecnico').value = '-';
+                document.getElementById('fechaConsulta').value = '-';
                 document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="empty-row">No hay solicitudes pendientes asignadas</td></tr>';
                 return;
             }
 
-            // Agrupar los ítems por ID de solicitud
+            // Agrupar ítems por ID de solicitud
             pedidos.forEach(item => {
                 const idSolicitud = item.solicitud || item.pedido;
                 if (!agrupadosPorSolicitud[idSolicitud]) {
@@ -410,7 +387,7 @@
                 agrupadosPorSolicitud[idSolicitud].push(item);
             });
 
-            // Llenar el desplegable con los IDs de solicitud
+            // Llenar el combo desplegable
             Object.keys(agrupadosPorSolicitud).forEach(idSol => {
                 const opt = document.createElement('option');
                 opt.value = idSol;
@@ -429,13 +406,16 @@
 
             if (!solId || !agrupadosPorSolicitud[solId]) {
                 document.getElementById('usuarioTecnico').value = '-';
+                document.getElementById('fechaConsulta').value = '-';
                 tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Selecciona una solicitud</td></tr>';
                 return;
             }
 
             const items = agrupadosPorSolicitud[solId];
             
+            // Establecer fecha/hora real del pedido y el técnico
             document.getElementById('usuarioTecnico').value = items[0].usuario;
+            document.getElementById('fechaConsulta').value = items[0].fecha || '-';
             document.getElementById('badgeEstado').textContent = items[0].estado || 'Pendiente';
 
             items.forEach(item => {
@@ -449,10 +429,7 @@
                         <input type="number" class="input-authorized" id="qty-${item.rowNum}" data-rownum="${item.rowNum}" value="${item.cantidad}" min="1">
                     </td>
                     <td style="text-align: center;">
-                        <button class="btn-sm btn-sm-warning" onclick="modificarCantidadItem(${item.rowNum})" title="Guardar cantidad">
-                            <i class="fas fa-save"></i>
-                        </button>
-                        <button class="btn-sm btn-sm-danger" onclick="eliminarItemRow(${item.rowNum})" title="Eliminar ítem">
+                        <button class="btn-sm-danger" onclick="eliminarItemRow(${item.rowNum})" title="Eliminar ítem">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
@@ -461,33 +438,9 @@
             });
         }
 
-        // --- Modificar cantidad de un solo ítem ---
-        function modificarCantidadItem(rowNum) {
-            const nuevaCant = document.getElementById(`qty-${rowNum}`).value;
-            if (!nuevaCant || nuevaCant <= 0) {
-                alert('Ingresa una cantidad válida.');
-                return;
-            }
-
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'modificarCantidad',
-                    rowNum: rowNum,
-                    nuevaCantidad: nuevaCant
-                }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message || 'Cantidad modificada.');
-            })
-            .catch(err => alert('Error al actualizar la cantidad.'));
-        }
-
-        // --- Eliminar un ítem de la tabla ---
+        // --- Eliminar un ítem (cambia a estado 'Eliminado' en la BD) ---
         function eliminarItemRow(rowNum) {
-            if (!confirm('¿Deseas eliminar este ítem de la solicitud?')) return;
+            if (!confirm('¿Deseas eliminar este ítem del pedido?')) return;
 
             fetch(scriptURL, {
                 method: 'POST',
@@ -499,14 +452,18 @@
             })
             .then(res => res.json())
             .then(data => {
-                alert('Ítem eliminado.');
                 const tr = document.getElementById(`row-item-${rowNum}`);
                 if (tr) tr.remove();
+                
+                // Si la tabla queda vacía tras eliminar la fila
+                if (document.querySelectorAll('#tableBody tr').length === 0) {
+                    cargarPedidos();
+                }
             })
-            .catch(err => alert('Error al eliminar el ítem.'));
+            .catch(err => alert('Error al procesar la solicitud.'));
         }
 
-        // --- Autorizar Pedido Completo ---
+        // --- Autorizar Pedido Completo (Guarda cantidades autorizadas y cambia a 'Realizado') ---
         function autorizarPedidoActual() {
             const select = document.getElementById('selectSolicitud');
             const idSolicitud = select.value;
@@ -542,10 +499,10 @@
                 alert('Solicitud autorizada exitosamente.');
                 cargarPedidos();
             })
-            .catch(err => alert('Error al procesar la autorización.'));
+            .catch(err => alert('Error al autorizar el pedido.'));
         }
 
-        // --- Anular Pedido Completo ---
+        // --- Anular Pedido Completo (Cambia estado a 'Anulado') ---
         function anularPedidoActual() {
             const select = document.getElementById('selectSolicitud');
             const idSolicitud = select.value;
@@ -570,7 +527,7 @@
                 alert('Solicitud anulada.');
                 cargarPedidos();
             })
-            .catch(err => alert('Error al anular la solicitud.'));
+            .catch(err => alert('Error al anular el pedido.'));
         }
     </script>
 </body>
