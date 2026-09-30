@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Catálogo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d2a;
+            --card-inner-bg: #0f1623;
+            --input-bg: #0b101b;
+            --border-color: #232f45;
+            --text-main: #e2e8f0;
+            --text-muted: #8a99ad;
+            --btn-primary: #2d5b88;
+            --btn-primary-hover: #3b73aa;
+            --btn-secondary: #243246;
+            --btn-secondary-hover: #31435e;
+            --btn-danger: #8f2d2d;
+            --btn-danger-hover: #b83a3a;
+            --btn-success: #206a4b;
+            --btn-success-hover: #2b8a63;
+            --badge-active-bg: #116843;
+            --badge-active-text: #d1fae5;
+            --accent-blue: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 18px 18px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 1100px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            margin: 20px;
+        }
+
+        /* Encabezado */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .btn-refresh {
+            background-color: var(--btn-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--accent-blue);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-refresh:hover {
+            background-color: var(--btn-secondary-hover);
+            transform: rotate(90deg);
+        }
+
+        /* Bloque de formulario / filtros */
+        .filter-section {
+            background-color: var(--card-inner-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.span-2 {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-blue);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        /* Insignia de Estado */
+        .badge-active {
+            display: inline-block;
+            background-color: var(--badge-active-bg);
+            color: var(--badge-active-text);
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            width: fit-content;
+        }
+
+        /* Tabla de ítems */
+        .table-container {
+            margin-bottom: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 900px;
+        }
+
+        .data-table th {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background-color: var(--card-bg);
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 12px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .btn-sm-danger {
+            background-color: var(--btn-danger);
+            border: none;
+            border-radius: 5px;
+            padding: 6px 10px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-sm-danger:hover {
+            background-color: var(--btn-danger-hover);
+        }
+
+        /* Botones de acción principal */
+        .actions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-guardar {
+            background-color: var(--btn-success);
+            color: #ffffff;
+            grid-column: span 4;
+            margin-top: 10px;
+        }
+
+        .btn-guardar:hover {
+            background-color: var(--btn-success-hover);
+        }
+
+        .btn-volver {
+            background-color: var(--btn-secondary);
+            color: var(--text-main);
+        }
+
+        .btn-volver:hover {
+            background-color: var(--btn-secondary-hover);
+        }
+
+        .empty-row {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px !important;
+        }
+
+        @media (max-width: 768px) {
+            .filter-section {
+                grid-template-columns: 1fr 1fr;
+            }
+            .btn-guardar {
+                grid-column: span 2;
+            }
+            .form-group.span-2 {
+                grid-column: span 2;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <!-- Encabezado -->
+        <div class="card-header">
+            <h2><i class="fas fa-boxes"></i> Gestión de Catálogo Base</h2>
+            <button class="btn-refresh" id="btnRefresh" title="Actualizar Catálogo" onclick="cargarCatalogo()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+
+        <!-- Formulario para Agregar Nuevo Producto -->
+        <div class="filter-section">
+            <div class="form-group">
+                <label for="nuevoCodigo">Código</label>
+                <input type="text" id="nuevoCodigo" class="form-control" placeholder="Ej: 18-05-21-043">
+            </div>
+
+            <div class="form-group span-2">
+                <label for="nuevaDescripcion">Descripción</label>
+                <input type="text" id="nuevaDescripcion" class="form-control" placeholder="Ej: ONT-ZXHN F6600P">
+            </div>
+
+            <div class="form-group">
+                <label for="nuevaUnidad">Unidad Medida</label>
+                <input type="number" id="nuevaUnidad" class="form-control" value="1">
+            </div>
+
+            <div class="form-group">
+                <label for="nuevaCantMax">Cantidad Max.</label>
+                <input type="number" id="nuevaCantMax" class="form-control" value="1">
+            </div>
+
+            <div class="form-group">
+                <label for="nuevoTipo">ID Tipo</label>
+                <input type="number" id="nuevoTipo" class="form-control" value="2">
+            </div>
+
+            <div class="form-group">
+                <label for="nuevoEstado">Estado</label>
+                <select id="nuevoEstado" class="form-control">
+                    <option value="Disponible">Disponible</option>
+                    <option value="Agotado">Agotado</option>
+                    <option value="Inactivo">Inactivo</option>
+                </select>
+            </div>
+
+            <div class="form-group span-2">
+                <label for="nuevaObservacion">Observación</label>
+                <input type="text" id="nuevaObservacion" class="form-control" placeholder="Ej: ONT WiFi 6 / ZTE-Nuevo">
+            </div>
+
+            <button class="btn-action btn-guardar" onclick="agregarProducto()">
+                <i class="fas fa-plus-circle"></i> Agregar Nuevo Producto
+            </button>
+        </div>
+
+        <!-- Tabla de Productos del Catálogo -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Descripción</th>
+                        <th style="text-align: center;">U. Medida</th>
+                        <th style="text-align: center;">Cant. Max</th>
+                        <th style="text-align: center;">Tipo</th>
+                        <th>Estado</th>
+                        <th>Observación</th>
+                        <th style="text-align: center;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="9" class="empty-row">Cargando catálogo...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Botones de Acción Principal -->
+        <div class="actions-container">
+            <a href="dashboard.html" class="btn-action btn-volver">
+                ⬅️ Volver al Menú
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/TU_SCRIPT_ID/exec'; 
+
+        document.addEventListener('DOMContentLoaded', cargarCatalogo);
+
+        function cargarCatalogo() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Cargando catálogo...</td></tr>';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getCatalogo'
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    procesarCatalogo(data.productos);
+                } else {
+                    alert('Error: ' + data.message);
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error al cargar datos</td></tr>';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error de conexión</td></tr>';
+            });
+        }
+
+        function procesarCatalogo(productos) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (!productos || productos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
+                return;
+            }
+
+            productos.forEach(item => {
+                // Generando las filas de acuerdo a la estructura de la imagen "Catalogo_Base"
+                const row = document.createElement('tr');
+                row.id = `row-item-${item.ID_Catalogo}`;
+                
+                const badgeClass = item.Estado === 'Disponible' ? 'badge-active' : 'badge-pending';
+
+                row.innerHTML = `
+                    <td>${item.ID_Catalogo}</td>
+                    <td><strong>${item.Codigo}</strong></td>
+                    <td>${item.Descripcion}</td>
+                    <td style="text-align: center;">${item.Unidad_Medida}</td>
+                    <td style="text-align: center;">${item.Cantidad_Max}</td>
+                    <td style="text-align: center;">${item.ID_Tipo}</td>
+                    <td><span class="${badgeClass}">${item.Estado}</span></td>
+                    <td>${item.Observacion || '-'}</td>
+                    <td style="text-align: center;">
+                        <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function agregarProducto() {
+            const codigo = document.getElementById('nuevoCodigo').value.trim();
+            const descripcion = document.getElementById('nuevaDescripcion').value.trim();
+            const unidadMedida = document.getElementById('nuevaUnidad').value;
+            const cantidadMax = document.getElementById('nuevaCantMax').value;
+            const idTipo = document.getElementById('nuevoTipo').value;
+            const estado = document.getElementById('nuevoEstado').value;
+            const observacion = document.getElementById('nuevaObservacion').value.trim();
+
+            if (!codigo || !descripcion) {
+                alert('El código y la descripción son obligatorios.');
+                return;
+            }
+
+            const payload = {
+                action: 'addCatalogoItem',
+                producto: {
+                    Codigo: codigo,
+                    Descripcion: descripcion,
+                    Unidad_Medida: unidadMedida,
+                    Cantidad_Max: cantidadMax,
+                    ID_Tipo: idTipo,
+                    Estado: estado,
+                    Observacion: observacion
+                }
+            };
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    alert('Producto agregado exitosamente.');
+                    // Limpiar formulario
+                    document.getElementById('nuevoCodigo').value = '';
+                    document.getElementById('nuevaDescripcion').value = '';
+                    document.getElementById('nuevaObservacion').value = '';
+                    cargarCatalogo();
+                } else {
+                    alert('Error al agregar el producto: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error de conexión al guardar el producto.'));
+        }
+
+        function eliminarProducto(idCatalogo) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar el producto ID: ${idCatalogo}?`)) return;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'deleteCatalogoItem',
+                    id: idCatalogo
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const tr = document.getElementById(`row-item-${idCatalogo}`);
+                    if (tr) tr.remove();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error al procesar la solicitud.'));
+        }
+    </script>
+</body>
+</html>
