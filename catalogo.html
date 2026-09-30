@@ -22,6 +22,8 @@
             --btn-danger-hover: #b83a3a;
             --btn-success: #206a4b;
             --btn-success-hover: #2b8a63;
+            --btn-warning: #d97706; /* Color para edición */
+            --btn-warning-hover: #b45309;
             --badge-active-bg: #116843;
             --badge-active-text: #d1fae5;
             --accent-blue: #38bdf8;
@@ -205,11 +207,34 @@
             background-color: var(--btn-danger-hover);
         }
 
+        .btn-sm-warning {
+            background-color: var(--btn-warning);
+            border: none;
+            border-radius: 5px;
+            padding: 6px 10px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-right: 5px;
+        }
+
+        .btn-sm-warning:hover {
+            background-color: var(--btn-warning-hover);
+        }
+
         /* Botones de acción principal */
         .actions-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+
+        .botones-form {
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         .btn-action {
@@ -232,12 +257,29 @@
         .btn-guardar {
             background-color: var(--btn-success);
             color: #ffffff;
-            grid-column: span 4;
-            margin-top: 10px;
         }
 
         .btn-guardar:hover {
             background-color: var(--btn-success-hover);
+        }
+
+        .btn-actualizar {
+            background-color: var(--btn-warning) !important;
+            color: #ffffff;
+        }
+
+        .btn-actualizar:hover {
+            background-color: var(--btn-warning-hover) !important;
+        }
+
+        .btn-cancelar {
+            background-color: var(--btn-secondary);
+            color: var(--text-main);
+            display: none; /* Oculto por defecto, se muestra al editar */
+        }
+
+        .btn-cancelar:hover {
+            background-color: var(--btn-secondary-hover);
         }
 
         .btn-volver {
@@ -259,7 +301,7 @@
             .filter-section {
                 grid-template-columns: 1fr 1fr;
             }
-            .btn-guardar {
+            .botones-form {
                 grid-column: span 2;
             }
             .form-group.span-2 {
@@ -279,7 +321,7 @@
             </button>
         </div>
 
-        <!-- Formulario para Agregar Nuevo Producto -->
+        <!-- Formulario para Agregar/Editar Producto -->
         <div class="filter-section">
             <div class="form-group">
                 <label for="nuevoCodigo">Código</label>
@@ -320,9 +362,14 @@
                 <input type="text" id="nuevaObservacion" class="form-control" placeholder="Ej: ONT WiFi 6 / ZTE-Nuevo">
             </div>
 
-            <button class="btn-action btn-guardar" onclick="agregarProducto()">
-                <i class="fas fa-plus-circle"></i> Agregar Nuevo Producto
-            </button>
+            <div class="botones-form">
+                <button id="btnGuardarProducto" class="btn-action btn-guardar" onclick="guardarOActualizarProducto()">
+                    <i class="fas fa-plus-circle"></i> <span>Agregar Nuevo Producto</span>
+                </button>
+                <button id="btnCancelarEdicion" class="btn-action btn-cancelar" onclick="cancelarEdicion()">
+                    <i class="fas fa-times-circle"></i> Cancelar Edición
+                </button>
+            </div>
         </div>
 
         <!-- Tabla de Productos del Catálogo -->
@@ -360,6 +407,9 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
+        let catalogoActual = []; // Almacenará los datos para facilitar la edición
+        let idProductoEditando = null; // Rastrea si estamos creando o editando
+
         document.addEventListener('DOMContentLoaded', cargarCatalogo);
 
         function cargarCatalogo() {
@@ -376,6 +426,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
+                    catalogoActual = data.productos; // Guardamos en memoria global
                     procesarCatalogo(data.productos);
                 } else {
                     alert('Error: ' + data.message);
@@ -398,7 +449,6 @@
             }
 
             productos.forEach(item => {
-                // Generando las filas de acuerdo a la estructura de la imagen "Catalogo_Base"
                 const row = document.createElement('tr');
                 row.id = `row-item-${item.ID_Catalogo}`;
                 
@@ -413,7 +463,10 @@
                     <td style="text-align: center;">${item.ID_Tipo}</td>
                     <td><span class="${badgeClass}">${item.Estado}</span></td>
                     <td>${item.Observacion || '-'}</td>
-                    <td style="text-align: center;">
+                    <td style="text-align: center; white-space: nowrap;">
+                        <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -423,7 +476,56 @@
             });
         }
 
-        function agregarProducto() {
+        // ====== LÓGICA DE EDICIÓN ======
+
+        function prepararEdicion(idCatalogo) {
+            // Buscar el producto en la memoria global
+            const producto = catalogoActual.find(p => p.ID_Catalogo == idCatalogo);
+            if (!producto) return;
+
+            idProductoEditando = idCatalogo;
+
+            // Llenar formulario
+            document.getElementById('nuevoCodigo').value = producto.Codigo;
+            document.getElementById('nuevaDescripcion').value = producto.Descripcion;
+            document.getElementById('nuevaUnidad').value = producto.Unidad_Medida;
+            document.getElementById('nuevaCantMax').value = producto.Cantidad_Max;
+            document.getElementById('nuevoTipo').value = producto.ID_Tipo;
+            document.getElementById('nuevoEstado').value = producto.Estado;
+            document.getElementById('nuevaObservacion').value = producto.Observacion || '';
+
+            // Cambiar la apariencia de los botones
+            const btnGuardar = document.getElementById('btnGuardarProducto');
+            btnGuardar.classList.replace('btn-guardar', 'btn-actualizar');
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> <span>Actualizar Producto</span>';
+            
+            document.getElementById('btnCancelarEdicion').style.display = 'flex';
+
+            // Subir la pantalla hacia el formulario
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicion() {
+            idProductoEditando = null;
+            
+            // Limpiar formulario
+            document.getElementById('nuevoCodigo').value = '';
+            document.getElementById('nuevaDescripcion').value = '';
+            document.getElementById('nuevaUnidad').value = '1';
+            document.getElementById('nuevaCantMax').value = '1';
+            document.getElementById('nuevoTipo').value = '2';
+            document.getElementById('nuevoEstado').value = 'Disponible';
+            document.getElementById('nuevaObservacion').value = '';
+
+            // Restaurar botones
+            const btnGuardar = document.getElementById('btnGuardarProducto');
+            btnGuardar.classList.replace('btn-actualizar', 'btn-guardar');
+            btnGuardar.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Agregar Nuevo Producto</span>';
+            
+            document.getElementById('btnCancelarEdicion').style.display = 'none';
+        }
+
+        function guardarOActualizarProducto() {
             const codigo = document.getElementById('nuevoCodigo').value.trim();
             const descripcion = document.getElementById('nuevaDescripcion').value.trim();
             const unidadMedida = document.getElementById('nuevaUnidad').value;
@@ -437,18 +539,24 @@
                 return;
             }
 
-            const payload = {
-                action: 'addCatalogoItem',
-                producto: {
-                    Codigo: codigo,
-                    Descripcion: descripcion,
-                    Unidad_Medida: unidadMedida,
-                    Cantidad_Max: cantidadMax,
-                    ID_Tipo: idTipo,
-                    Estado: estado,
-                    Observacion: observacion
-                }
+            const productoData = {
+                Codigo: codigo,
+                Descripcion: descripcion,
+                Unidad_Medida: unidadMedida,
+                Cantidad_Max: cantidadMax,
+                ID_Tipo: idTipo,
+                Estado: estado,
+                Observacion: observacion
             };
+
+            // Determinar si es actualización o creación nueva
+            let payload = {};
+            if (idProductoEditando !== null) {
+                productoData.ID_Catalogo = idProductoEditando;
+                payload = { action: 'updateCatalogoItem', producto: productoData };
+            } else {
+                payload = { action: 'addCatalogoItem', producto: productoData };
+            }
 
             fetch(scriptURL, {
                 method: 'POST',
@@ -458,18 +566,17 @@
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
-                    alert('Producto agregado exitosamente.');
-                    // Limpiar formulario
-                    document.getElementById('nuevoCodigo').value = '';
-                    document.getElementById('nuevaDescripcion').value = '';
-                    document.getElementById('nuevaObservacion').value = '';
-                    cargarCatalogo();
+                    alert(idProductoEditando ? 'Producto actualizado exitosamente.' : 'Producto agregado exitosamente.');
+                    cancelarEdicion(); // Limpia form y resetea estados
+                    cargarCatalogo(); // Recarga la tabla
                 } else {
-                    alert('Error al agregar el producto: ' + data.message);
+                    alert('Error al guardar: ' + data.message);
                 }
             })
-            .catch(err => alert('Error de conexión al guardar el producto.'));
+            .catch(err => alert('Error de conexión al procesar la solicitud.'));
         }
+
+        // ====== LÓGICA DE ELIMINACIÓN ======
 
         function eliminarProducto(idCatalogo) {
             if (!confirm(`¿Estás seguro de que deseas eliminar el producto ID: ${idCatalogo}?`)) return;
@@ -487,6 +594,9 @@
                 if (data.status === 'success') {
                     const tr = document.getElementById(`row-item-${idCatalogo}`);
                     if (tr) tr.remove();
+                    
+                    // Si se elimina el producto que se estaba editando, cancelar edición
+                    if (idProductoEditando == idCatalogo) cancelarEdicion();
                 } else {
                     alert('Error: ' + data.message);
                 }
