@@ -409,10 +409,40 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
-        let catalogoActual = []; // Almacenará los datos para facilitar la edición
-        let idProductoEditando = null; // Rastrea si estamos creando o editando
+        let catalogoActual = []; 
+        let idProductoEditando = null; 
+        let tiposActuales = []; // NUEVA VARIABLE PARA GUARDAR LOS TIPOS
 
-        document.addEventListener('DOMContentLoaded', cargarCatalogo);
+        // Modificamos el inicio para que cargue los tipos primero
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarTipos();
+            cargarCatalogo();
+        });
+
+        // NUEVA FUNCIÓN: Trae los datos de la hoja "Tipo" y llena el combo
+        function cargarTipos() {
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getTipos' }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    tiposActuales = data.tipos;
+                    const selectTipo = document.getElementById('nuevoTipo');
+                    selectTipo.innerHTML = ''; // Limpiar el "Cargando..."
+                    
+                    tiposActuales.forEach(tipo => {
+                        const option = document.createElement('option');
+                        option.value = tipo.id; // Este es el valor que se enviará a la base de datos (Ej: 1, 2)
+                        option.textContent = tipo.nombre; // Este es el texto que ve el usuario (Ej: Material, Equipo)
+                        selectTipo.appendChild(option);
+                    });
+                }
+            })
+            .catch(err => console.error("Error al cargar los tipos:", err));
+        }
 
         function cargarCatalogo() {
             const tbody = document.getElementById('tableBody');
@@ -441,43 +471,50 @@
             });
         }
 
-        function procesarCatalogo(productos) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+       function procesarCatalogo(productos) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
 
-            if (!productos || productos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
-                return;
-            }
+    if (!productos || productos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
+        return;
+    }
 
-            productos.forEach(item => {
-                const row = document.createElement('tr');
-                row.id = `row-item-${item.ID_Catalogo}`;
-                
-                const badgeClass = item.Estado === 'Disponible' ? 'badge-active' : 'badge-pending';
+    productos.forEach(item => {
+        const row = document.createElement('tr');
+        row.id = `row-item-${item.ID_Catalogo}`;
+        
+        const badgeClass = item.Estado === 'Disponible' ? 'badge-active' : 'badge-pending';
 
-                row.innerHTML = `
-                    <td>${item.ID_Catalogo}</td>
-                    <td><strong>${item.Codigo}</strong></td>
-                    <td>${item.Descripcion}</td>
-                    <td style="text-align: center;">${item.Unidad_Medida}</td>
-                    <td style="text-align: center;">${item.Cantidad_Max}</td>
-                    <td style="text-align: center;">${item.ID_Tipo}</td>
-                    <td><span class="${badgeClass}">${item.Estado}</span></td>
-                    <td>${item.Observacion || '-'}</td>
-                    <td style="text-align: center; white-space: nowrap;">
-                        <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+        // Buscar el nombre del tipo en el arreglo global "tiposActuales"
+        const tipoEncontrado = tiposActuales.find(t => String(t.id) === String(item.ID_Tipo));
+        const nombreDelTipo = tipoEncontrado ? tipoEncontrado.nombre : item.ID_Tipo;
 
+        row.innerHTML = `
+            <td>${item.ID_Catalogo}</td>
+            <td><strong>${item.Codigo}</strong></td>
+            <td>${item.Descripcion}</td>
+            <td style="text-align: center;">${item.Unidad_Medida}</td>
+            <td style="text-align: center;">${item.Cantidad_Max}</td>
+            <td style="text-align: center;">
+                <span style="background: #243246; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                    ${nombreDelTipo}
+                </span>
+            </td>
+            <td><span class="${badgeClass}">${item.Estado}</span></td>
+            <td>${item.Observacion || '-'}</td>
+            <td style="text-align: center; white-space: nowrap;">
+                <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
         // ====== LÓGICA DE EDICIÓN ======
 
         function prepararEdicion(idCatalogo) {
