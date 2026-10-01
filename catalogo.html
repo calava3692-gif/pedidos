@@ -407,241 +407,242 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
-        let catalogoActual = []; 
-        let idProductoEditando = null; 
-        let tiposActuales = []; // NUEVA VARIABLE PARA GUARDAR LOS TIPOS
+    let catalogoActual = []; 
+    let idProductoEditando = null; 
+    let tiposActuales = []; 
 
-        // Modificamos el inicio para que cargue los tipos primero
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarTipos();
-            cargarCatalogo();
-        });
+    // Carga secuencial usando async/await
+    document.addEventListener('DOMContentLoaded', async () => {
+        await cargarTipos();
+        cargarCatalogo();
+    });
 
-        // NUEVA FUNCIÓN: Trae los datos de la hoja "Tipo" y llena el combo
-        function cargarTipos() {
-            fetch(scriptURL, {
+    // 1. CARGAR TIPOS (Devuelve una promesa para esperar su finalización)
+    async function cargarTipos() {
+        try {
+            const res = await fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'getTipos' }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    tiposActuales = data.tipos;
-                    const selectTipo = document.getElementById('nuevoTipo');
-                    selectTipo.innerHTML = ''; // Limpiar el "Cargando..."
-                    
-                    tiposActuales.forEach(tipo => {
-                        const option = document.createElement('option');
-                        option.value = tipo.id; // Este es el valor que se enviará a la base de datos (Ej: 1, 2)
-                        option.textContent = tipo.nombre; // Este es el texto que ve el usuario (Ej: Material, Equipo)
-                        selectTipo.appendChild(option);
-                    });
-                }
-            })
-            .catch(err => console.error("Error al cargar los tipos:", err));
+            });
+            const text = await res.text();
+            const data = JSON.parse(text);
+
+            if (data.status === 'success') {
+                tiposActuales = data.tipos;
+                const selectTipo = document.getElementById('nuevoTipo');
+                selectTipo.innerHTML = ''; 
+                
+                tiposActuales.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo.id; 
+                    option.textContent = tipo.nombre; 
+                    selectTipo.appendChild(option);
+                });
+            }
+        } catch (err) {
+            console.error("Error al cargar los tipos:", err);
         }
+    }
 
-        function cargarCatalogo() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Cargando catálogo...</td></tr>';
+    // 2. CARGAR CATÁLOGO
+    function cargarCatalogo() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Cargando catálogo...</td></tr>';
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'getCatalogo'
-                }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getCatalogo' }),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        })
+        .then(res => res.text()) // Leemos como texto primero para evitar crash de sintaxis
+        .then(text => {
+            try {
+                const data = JSON.parse(text);
                 if (data.status === 'success') {
-                    catalogoActual = data.productos; // Guardamos en memoria global
+                    catalogoActual = data.productos;
                     procesarCatalogo(data.productos);
                 } else {
                     alert('Error: ' + data.message);
                     tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error al cargar datos</td></tr>';
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error de conexión</td></tr>';
-            });
-        }
-
-       function procesarCatalogo(productos) {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
-
-    if (!productos || productos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
-        return;
+            } catch (e) {
+                console.error("Respuesta no válida del servidor:", text);
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error en respuesta del servidor</td></tr>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error de conexión</td></tr>';
+        });
     }
 
-    productos.forEach(item => {
-        const row = document.createElement('tr');
-        row.id = `row-item-${item.ID_Catalogo}`;
+    // 3. PROCESAR Y MOSTRAR TABLA
+    function procesarCatalogo(productos) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if (!productos || productos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
+            return;
+        }
+
+        productos.forEach(item => {
+            const row = document.createElement('tr');
+            row.id = `row-item-${item.ID_Catalogo}`;
+            
+            const badgeClass = item.Estado === 'Disponible' ? 'badge-active' : 'badge-pending';
+
+            // Relacionar ID_Tipo con Nombre_Tipo
+            const tipoEncontrado = tiposActuales.find(t => String(t.id) === String(item.ID_Tipo));
+            const nombreDelTipo = tipoEncontrado ? tipoEncontrado.nombre : item.ID_Tipo;
+
+            row.innerHTML = `
+                <td>${item.ID_Catalogo}</td>
+                <td><strong>${item.Codigo}</strong></td>
+                <td>${item.Descripcion}</td>
+                <td style="text-align: center;">${item.Unidad_Medida}</td>
+                <td style="text-align: center;">${item.Cantidad_Max}</td>
+                <td style="text-align: center;">
+                    <span style="background: #243246; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                        ${nombreDelTipo}
+                    </span>
+                </td>
+                <td><span class="${badgeClass}">${item.Estado}</span></td>
+                <td>${item.Observacion || '-'}</td>
+                <td style="text-align: center; white-space: nowrap;">
+                    <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 4. EDICIÓN DE PRODUCTO
+    function prepararEdicion(idCatalogo) {
+        const producto = catalogoActual.find(p => p.ID_Catalogo == idCatalogo);
+        if (!producto) return;
+
+        idProductoEditando = idCatalogo;
+
+        document.getElementById('nuevoCodigo').value = producto.Codigo;
+        document.getElementById('nuevaDescripcion').value = producto.Descripcion;
+        document.getElementById('nuevaUnidad').value = producto.Unidad_Medida;
+        document.getElementById('nuevaCantMax').value = producto.Cantidad_Max;
+        document.getElementById('nuevoTipo').value = producto.ID_Tipo;
+        document.getElementById('nuevoEstado').value = producto.Estado;
+        document.getElementById('nuevaObservacion').value = producto.Observacion || '';
+
+        const btnGuardar = document.getElementById('btnGuardarProducto');
+        btnGuardar.classList.replace('btn-guardar', 'btn-actualizar');
+        btnGuardar.innerHTML = '<i class="fas fa-save"></i> <span>Actualizar Producto</span>';
         
-        const badgeClass = item.Estado === 'Disponible' ? 'badge-active' : 'badge-pending';
+        document.getElementById('btnCancelarEdicion').style.display = 'flex';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-        // Buscar el nombre del tipo en el arreglo global "tiposActuales"
-        const tipoEncontrado = tiposActuales.find(t => String(t.id) === String(item.ID_Tipo));
-        const nombreDelTipo = tipoEncontrado ? tipoEncontrado.nombre : item.ID_Tipo;
+    function cancelarEdicion() {
+        idProductoEditando = null;
+        
+        document.getElementById('nuevoCodigo').value = '';
+        document.getElementById('nuevaDescripcion').value = '';
+        document.getElementById('nuevaUnidad').value = '1';
+        document.getElementById('nuevaCantMax').value = '1';
+        document.getElementById('nuevoEstado').value = 'Disponible';
+        document.getElementById('nuevaObservacion').value = '';
 
-        row.innerHTML = `
-            <td>${item.ID_Catalogo}</td>
-            <td><strong>${item.Codigo}</strong></td>
-            <td>${item.Descripcion}</td>
-            <td style="text-align: center;">${item.Unidad_Medida}</td>
-            <td style="text-align: center;">${item.Cantidad_Max}</td>
-            <td style="text-align: center;">
-                <span style="background: #243246; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
-                    ${nombreDelTipo}
-                </span>
-            </td>
-            <td><span class="${badgeClass}">${item.Estado}</span></td>
-            <td>${item.Observacion || '-'}</td>
-            <td style="text-align: center; white-space: nowrap;">
-                <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-        // ====== LÓGICA DE EDICIÓN ======
+        const selectTipo = document.getElementById('nuevoTipo');
+        if (selectTipo.options.length > 0) selectTipo.selectedIndex = 0;
 
-        function prepararEdicion(idCatalogo) {
-            // Buscar el producto en la memoria global
-            const producto = catalogoActual.find(p => p.ID_Catalogo == idCatalogo);
-            if (!producto) return;
+        const btnGuardar = document.getElementById('btnGuardarProducto');
+        btnGuardar.classList.replace('btn-actualizar', 'btn-guardar');
+        btnGuardar.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Agregar Nuevo Producto</span>';
+        
+        document.getElementById('btnCancelarEdicion').style.display = 'none';
+    }
 
-            idProductoEditando = idCatalogo;
+    // 5. GUARDAR O ACTUALIZAR
+    function guardarOActualizarProducto() {
+        const codigo = document.getElementById('nuevoCodigo').value.trim();
+        const descripcion = document.getElementById('nuevaDescripcion').value.trim();
+        const unidadMedida = document.getElementById('nuevaUnidad').value;
+        const cantidadMax = document.getElementById('nuevaCantMax').value;
+        const idTipo = document.getElementById('nuevoTipo').value;
+        const estado = document.getElementById('nuevoEstado').value;
+        const observacion = document.getElementById('nuevaObservacion').value.trim();
 
-            // Llenar formulario
-            document.getElementById('nuevoCodigo').value = producto.Codigo;
-            document.getElementById('nuevaDescripcion').value = producto.Descripcion;
-            document.getElementById('nuevaUnidad').value = producto.Unidad_Medida;
-            document.getElementById('nuevaCantMax').value = producto.Cantidad_Max;
-            document.getElementById('nuevoTipo').value = producto.ID_Tipo;
-            document.getElementById('nuevoEstado').value = producto.Estado;
-            document.getElementById('nuevaObservacion').value = producto.Observacion || '';
-
-            // Cambiar la apariencia de los botones
-            const btnGuardar = document.getElementById('btnGuardarProducto');
-            btnGuardar.classList.replace('btn-guardar', 'btn-actualizar');
-            btnGuardar.innerHTML = '<i class="fas fa-save"></i> <span>Actualizar Producto</span>';
-            
-            document.getElementById('btnCancelarEdicion').style.display = 'flex';
-
-            // Subir la pantalla hacia el formulario
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!codigo || !descripcion) {
+            alert('El código y la descripción son obligatorios.');
+            return;
         }
 
-        function cancelarEdicion() {
-            idProductoEditando = null;
-            
-            // Limpiar formulario
-            document.getElementById('nuevoCodigo').value = '';
-            document.getElementById('nuevaDescripcion').value = '';
-            document.getElementById('nuevaUnidad').value = '1';
-            document.getElementById('nuevaCantMax').value = '1';
-            document.getElementById('nuevoTipo').value = '2';
-            document.getElementById('nuevoEstado').value = 'Disponible';
-            document.getElementById('nuevaObservacion').value = '';
+        const productoData = {
+            Codigo: codigo,
+            Descripcion: descripcion,
+            Unidad_Medida: unidadMedida,
+            Cantidad_Max: cantidadMax,
+            ID_Tipo: idTipo,
+            Estado: estado,
+            Observacion: observacion
+        };
 
-            // Restaurar botones
-            const btnGuardar = document.getElementById('btnGuardarProducto');
-            btnGuardar.classList.replace('btn-actualizar', 'btn-guardar');
-            btnGuardar.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Agregar Nuevo Producto</span>';
-            
-            document.getElementById('btnCancelarEdicion').style.display = 'none';
+        let payload = {};
+        if (idProductoEditando !== null) {
+            productoData.ID_Catalogo = idProductoEditando;
+            payload = { action: 'updateCatalogoItem', producto: productoData };
+        } else {
+            payload = { action: 'addCatalogoItem', producto: productoData };
         }
 
-        function guardarOActualizarProducto() {
-            const codigo = document.getElementById('nuevoCodigo').value.trim();
-            const descripcion = document.getElementById('nuevaDescripcion').value.trim();
-            const unidadMedida = document.getElementById('nuevaUnidad').value;
-            const cantidadMax = document.getElementById('nuevaCantMax').value;
-            const idTipo = document.getElementById('nuevoTipo').value;
-            const estado = document.getElementById('nuevoEstado').value;
-            const observacion = document.getElementById('nuevaObservacion').value.trim();
-
-            if (!codigo || !descripcion) {
-                alert('El código y la descripción son obligatorios.');
-                return;
-            }
-
-            const productoData = {
-                Codigo: codigo,
-                Descripcion: descripcion,
-                Unidad_Medida: unidadMedida,
-                Cantidad_Max: cantidadMax,
-                ID_Tipo: idTipo,
-                Estado: estado,
-                Observacion: observacion
-            };
-
-            // Determinar si es actualización o creación nueva
-            let payload = {};
-            if (idProductoEditando !== null) {
-                productoData.ID_Catalogo = idProductoEditando;
-                payload = { action: 'updateCatalogoItem', producto: productoData };
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert(idProductoEditando ? 'Producto actualizado exitosamente.' : 'Producto agregado exitosamente.');
+                cancelarEdicion();
+                cargarCatalogo();
             } else {
-                payload = { action: 'addCatalogoItem', producto: productoData };
+                alert('Error al guardar: ' + data.message);
             }
+        })
+        .catch(err => alert('Error de conexión al procesar la solicitud.'));
+    }
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    alert(idProductoEditando ? 'Producto actualizado exitosamente.' : 'Producto agregado exitosamente.');
-                    cancelarEdicion(); // Limpia form y resetea estados
-                    cargarCatalogo(); // Recarga la tabla
-                } else {
-                    alert('Error al guardar: ' + data.message);
-                }
-            })
-            .catch(err => alert('Error de conexión al procesar la solicitud.'));
-        }
+    // 6. ELIMINAR PRODUCTO
+    function eliminarProducto(idCatalogo) {
+        if (!confirm(`¿Estás seguro de que deseas eliminar el producto ID: ${idCatalogo}?`)) return;
 
-        // ====== LÓGICA DE ELIMINACIÓN ======
-
-        function eliminarProducto(idCatalogo) {
-            if (!confirm(`¿Estás seguro de que deseas eliminar el producto ID: ${idCatalogo}?`)) return;
-
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'deleteCatalogoItem',
-                    id: idCatalogo
-                }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const tr = document.getElementById(`row-item-${idCatalogo}`);
-                    if (tr) tr.remove();
-                    
-                    // Si se elimina el producto que se estaba editando, cancelar edición
-                    if (idProductoEditando == idCatalogo) cancelarEdicion();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(err => alert('Error al procesar la solicitud.'));
-        }
-    </script>
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'deleteCatalogoItem',
+                id: idCatalogo
+            }),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const tr = document.getElementById(`row-item-${idCatalogo}`);
+                if (tr) tr.remove();
+                if (idProductoEditando == idCatalogo) cancelarEdicion();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => alert('Error al procesar la solicitud.'));
+    }
+</script>
 </body>
 </html>
