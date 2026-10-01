@@ -22,10 +22,8 @@
             --btn-danger-hover: #b83a3a;
             --btn-success: #206a4b;
             --btn-success-hover: #2b8a63;
-            --btn-warning: #d97706; /* Color para edición */
+            --btn-warning: #d97706;
             --btn-warning-hover: #b45309;
-            --badge-active-bg: #116843;
-            --badge-active-text: #d1fae5;
             --accent-blue: #38bdf8;
         }
 
@@ -138,16 +136,35 @@
             cursor: pointer;
         }
 
-        /* Insignia de Estado */
-        .badge-active {
-            display: inline-block;
-            background-color: var(--badge-active-bg);
-            color: var(--badge-active-text);
+        /* Insignias de Estado Dinámicas */
+        .badge-disponible {
+            background-color: #116843;
+            color: #d1fae5;
             font-weight: 600;
             padding: 4px 10px;
             border-radius: 6px;
             font-size: 12px;
-            width: fit-content;
+            display: inline-block;
+        }
+
+        .badge-agotado {
+            background-color: #b45309;
+            color: #fef3c7;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .badge-inactivo {
+            background-color: #8f2d2d;
+            color: #fecaca;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: inline-block;
         }
 
         /* Tabla de ítems */
@@ -222,7 +239,7 @@
             background-color: var(--btn-warning-hover);
         }
 
-        /* Botones de acción principal */
+        /* Botones de acción */
         .actions-container {
             display: flex;
             flex-direction: column;
@@ -275,7 +292,7 @@
         .btn-cancelar {
             background-color: var(--btn-secondary);
             color: var(--text-main);
-            display: none; /* Oculto por defecto, se muestra al editar */
+            display: none;
         }
 
         .btn-cancelar:hover {
@@ -316,12 +333,12 @@
         <!-- Encabezado -->
         <div class="card-header">
             <h2><i class="fas fa-boxes"></i> Gestión de Catálogo Base</h2>
-            <button class="btn-refresh" id="btnRefresh" title="Actualizar Catálogo" onclick="cargarCatalogo()">
+            <button class="btn-refresh" id="btnRefresh" title="Actualizar Catálogo" onclick="recargarTodo()">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
 
-        <!-- Formulario para Agregar/Editar Producto -->
+        <!-- Formulario de Producto -->
         <div class="filter-section">
             <div class="form-group">
                 <label for="nuevoCodigo">Código</label>
@@ -374,7 +391,7 @@
             </div>
         </div>
 
-        <!-- Tabla de Productos del Catálogo -->
+        <!-- Tabla de Productos -->
         <div class="table-container">
             <table class="data-table">
                 <thead>
@@ -398,7 +415,7 @@
             </table>
         </div>
 
-        <!-- Botones de Acción Principal -->
+        <!-- Acciones Inferiores -->
         <div class="actions-container">
             <a href="dashboard.html" class="btn-action btn-volver">
                 ⬅️ Volver al Menú
@@ -407,60 +424,63 @@
     </div>
 
     <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
-    let catalogoActual = []; 
-    let idProductoEditando = null; 
-    let tiposActuales = []; 
+        let catalogoActual = []; 
+        let idProductoEditando = null; 
+        let tiposActuales = []; 
 
-    // Carga secuencial usando async/await
-    document.addEventListener('DOMContentLoaded', async () => {
-        await cargarTipos();
-        cargarCatalogo();
-    });
+        // Carga secuencial: Tipos primero, luego Catálogo
+        document.addEventListener('DOMContentLoaded', async () => {
+            await recargarTodo();
+        });
 
-    // 1. CARGAR TIPOS (Devuelve una promesa para esperar su finalización)
-    async function cargarTipos() {
-        try {
-            const res = await fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getTipos' }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            });
-            const text = await res.text();
-            const data = JSON.parse(text);
-
-            if (data.status === 'success') {
-                tiposActuales = data.tipos;
-                const selectTipo = document.getElementById('nuevoTipo');
-                selectTipo.innerHTML = ''; 
-                
-                tiposActuales.forEach(tipo => {
-                    const option = document.createElement('option');
-                    option.value = tipo.id; 
-                    option.textContent = tipo.nombre; 
-                    selectTipo.appendChild(option);
-                });
-            }
-        } catch (err) {
-            console.error("Error al cargar los tipos:", err);
+        async function recargarTodo() {
+            await cargarTipos();
+            cargarCatalogo();
         }
-    }
 
-    // 2. CARGAR CATÁLOGO
-    function cargarCatalogo() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Cargando catálogo...</td></tr>';
-
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'getCatalogo' }),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        })
-        .then(res => res.text()) // Leemos como texto primero para evitar crash de sintaxis
-        .then(text => {
+        // 1. CARGAR TIPOS
+        async function cargarTipos() {
             try {
-                const data = JSON.parse(text);
+                const res = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getTipos' }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    tiposActuales = data.tipos;
+                    const selectTipo = document.getElementById('nuevoTipo');
+                    selectTipo.innerHTML = ''; 
+                    
+                    tiposActuales.forEach(tipo => {
+                        const option = document.createElement('option');
+                        option.value = tipo.id; 
+                        option.textContent = tipo.nombre; 
+                        selectTipo.appendChild(option);
+                    });
+                } else {
+                    console.error("Error devuelto por Apps Script al cargar tipos:", data.message);
+                }
+            } catch (err) {
+                console.error("Error de conexión al cargar tipos:", err);
+            }
+        }
+
+        // 2. CARGAR CATÁLOGO
+        function cargarCatalogo() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Cargando catálogo...</td></tr>';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getCatalogo' }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
                 if (data.status === 'success') {
                     catalogoActual = data.productos;
                     procesarCatalogo(data.productos);
@@ -468,181 +488,184 @@
                     alert('Error: ' + data.message);
                     tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error al cargar datos</td></tr>';
                 }
-            } catch (e) {
-                console.error("Respuesta no válida del servidor:", text);
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error en respuesta del servidor</td></tr>';
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error de conexión</td></tr>';
-        });
-    }
-
-    // 3. PROCESAR Y MOSTRAR TABLA
-    function procesarCatalogo(productos) {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-
-        if (!productos || productos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
-            return;
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Error de conexión</td></tr>';
+            });
         }
 
-        productos.forEach(item => {
-            const row = document.createElement('tr');
-            row.id = `row-item-${item.ID_Catalogo}`;
+        // 3. PROCESAR TABLA
+        function procesarCatalogo(productos) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (!productos || productos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">El catálogo está vacío</td></tr>';
+                return;
+            }
+
+            productos.forEach(item => {
+                const row = document.createElement('tr');
+                row.id = `row-item-${item.ID_Catalogo}`;
+                
+                // Color por estado
+                let badgeClass = 'badge-disponible';
+                if (item.Estado === 'Agotado') {
+                    badgeClass = 'badge-agotado';
+                } else if (item.Estado === 'Inactivo') {
+                    badgeClass = 'badge-inactivo';
+                }
+
+                // Obtener nombre del tipo por ID
+                const tipoEncontrado = tiposActuales.find(t => String(t.id) === String(item.ID_Tipo));
+                const nombreDelTipo = tipoEncontrado ? tipoEncontrado.nombre : `ID: ${item.ID_Tipo}`;
+
+                row.innerHTML = `
+                    <td>${item.ID_Catalogo}</td>
+                    <td><strong>${item.Codigo}</strong></td>
+                    <td>${item.Descripcion}</td>
+                    <td style="text-align: center;">${item.Unidad_Medida}</td>
+                    <td style="text-align: center;">${item.Cantidad_Max}</td>
+                    <td style="text-align: center;">
+                        <span style="background: #243246; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #38bdf8;">
+                            ${nombreDelTipo}
+                        </span>
+                    </td>
+                    <td><span class="${badgeClass}">${item.Estado}</span></td>
+                    <td>${item.Observacion || '-'}</td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 4. PREPARAR EDICIÓN
+        function prepararEdicion(idCatalogo) {
+            const producto = catalogoActual.find(p => p.ID_Catalogo == idCatalogo);
+            if (!producto) return;
+
+            idProductoEditando = idCatalogo;
+
+            document.getElementById('nuevoCodigo').value = producto.Codigo;
+            document.getElementById('nuevaDescripcion').value = producto.Descripcion;
+            document.getElementById('nuevaUnidad').value = producto.Unidad_Medida;
+            document.getElementById('nuevaCantMax').value = producto.Cantidad_Max;
+            document.getElementById('nuevoTipo').value = producto.ID_Tipo;
+            document.getElementById('nuevoEstado').value = producto.Estado;
+            document.getElementById('nuevaObservacion').value = producto.Observacion || '';
+
+            const btnGuardar = document.getElementById('btnGuardarProducto');
+            btnGuardar.classList.replace('btn-guardar', 'btn-actualizar');
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> <span>Actualizar Producto</span>';
             
-            const badgeClass = item.Estado === 'Disponible' ? 'badge-active' : 'badge-pending';
-
-            // Relacionar ID_Tipo con Nombre_Tipo
-            const tipoEncontrado = tiposActuales.find(t => String(t.id) === String(item.ID_Tipo));
-            const nombreDelTipo = tipoEncontrado ? tipoEncontrado.nombre : item.ID_Tipo;
-
-            row.innerHTML = `
-                <td>${item.ID_Catalogo}</td>
-                <td><strong>${item.Codigo}</strong></td>
-                <td>${item.Descripcion}</td>
-                <td style="text-align: center;">${item.Unidad_Medida}</td>
-                <td style="text-align: center;">${item.Cantidad_Max}</td>
-                <td style="text-align: center;">
-                    <span style="background: #243246; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
-                        ${nombreDelTipo}
-                    </span>
-                </td>
-                <td><span class="${badgeClass}">${item.Estado}</span></td>
-                <td>${item.Observacion || '-'}</td>
-                <td style="text-align: center; white-space: nowrap;">
-                    <button class="btn-sm-warning" onclick="prepararEdicion(${item.ID_Catalogo})" title="Editar Producto">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-sm-danger" onclick="eliminarProducto(${item.ID_Catalogo})" title="Eliminar Producto">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    // 4. EDICIÓN DE PRODUCTO
-    function prepararEdicion(idCatalogo) {
-        const producto = catalogoActual.find(p => p.ID_Catalogo == idCatalogo);
-        if (!producto) return;
-
-        idProductoEditando = idCatalogo;
-
-        document.getElementById('nuevoCodigo').value = producto.Codigo;
-        document.getElementById('nuevaDescripcion').value = producto.Descripcion;
-        document.getElementById('nuevaUnidad').value = producto.Unidad_Medida;
-        document.getElementById('nuevaCantMax').value = producto.Cantidad_Max;
-        document.getElementById('nuevoTipo').value = producto.ID_Tipo;
-        document.getElementById('nuevoEstado').value = producto.Estado;
-        document.getElementById('nuevaObservacion').value = producto.Observacion || '';
-
-        const btnGuardar = document.getElementById('btnGuardarProducto');
-        btnGuardar.classList.replace('btn-guardar', 'btn-actualizar');
-        btnGuardar.innerHTML = '<i class="fas fa-save"></i> <span>Actualizar Producto</span>';
-        
-        document.getElementById('btnCancelarEdicion').style.display = 'flex';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelarEdicion() {
-        idProductoEditando = null;
-        
-        document.getElementById('nuevoCodigo').value = '';
-        document.getElementById('nuevaDescripcion').value = '';
-        document.getElementById('nuevaUnidad').value = '1';
-        document.getElementById('nuevaCantMax').value = '1';
-        document.getElementById('nuevoEstado').value = 'Disponible';
-        document.getElementById('nuevaObservacion').value = '';
-
-        const selectTipo = document.getElementById('nuevoTipo');
-        if (selectTipo.options.length > 0) selectTipo.selectedIndex = 0;
-
-        const btnGuardar = document.getElementById('btnGuardarProducto');
-        btnGuardar.classList.replace('btn-actualizar', 'btn-guardar');
-        btnGuardar.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Agregar Nuevo Producto</span>';
-        
-        document.getElementById('btnCancelarEdicion').style.display = 'none';
-    }
-
-    // 5. GUARDAR O ACTUALIZAR
-    function guardarOActualizarProducto() {
-        const codigo = document.getElementById('nuevoCodigo').value.trim();
-        const descripcion = document.getElementById('nuevaDescripcion').value.trim();
-        const unidadMedida = document.getElementById('nuevaUnidad').value;
-        const cantidadMax = document.getElementById('nuevaCantMax').value;
-        const idTipo = document.getElementById('nuevoTipo').value;
-        const estado = document.getElementById('nuevoEstado').value;
-        const observacion = document.getElementById('nuevaObservacion').value.trim();
-
-        if (!codigo || !descripcion) {
-            alert('El código y la descripción son obligatorios.');
-            return;
+            document.getElementById('btnCancelarEdicion').style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        const productoData = {
-            Codigo: codigo,
-            Descripcion: descripcion,
-            Unidad_Medida: unidadMedida,
-            Cantidad_Max: cantidadMax,
-            ID_Tipo: idTipo,
-            Estado: estado,
-            Observacion: observacion
-        };
+        // 5. CANCELAR EDICIÓN
+        function cancelarEdicion() {
+            idProductoEditando = null;
+            
+            document.getElementById('nuevoCodigo').value = '';
+            document.getElementById('nuevaDescripcion').value = '';
+            document.getElementById('nuevaUnidad').value = '1';
+            document.getElementById('nuevaCantMax').value = '1';
+            document.getElementById('nuevoEstado').value = 'Disponible';
+            document.getElementById('nuevaObservacion').value = '';
 
-        let payload = {};
-        if (idProductoEditando !== null) {
-            productoData.ID_Catalogo = idProductoEditando;
-            payload = { action: 'updateCatalogoItem', producto: productoData };
-        } else {
-            payload = { action: 'addCatalogoItem', producto: productoData };
+            const selectTipo = document.getElementById('nuevoTipo');
+            if (selectTipo.options.length > 0) selectTipo.selectedIndex = 0;
+
+            const btnGuardar = document.getElementById('btnGuardarProducto');
+            btnGuardar.classList.replace('btn-actualizar', 'btn-guardar');
+            btnGuardar.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Agregar Nuevo Producto</span>';
+            
+            document.getElementById('btnCancelarEdicion').style.display = 'none';
         }
 
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === 'success') {
-                alert(idProductoEditando ? 'Producto actualizado exitosamente.' : 'Producto agregado exitosamente.');
-                cancelarEdicion();
-                cargarCatalogo();
-            } else {
-                alert('Error al guardar: ' + data.message);
-            }
-        })
-        .catch(err => alert('Error de conexión al procesar la solicitud.'));
-    }
+        // 6. GUARDAR O ACTUALIZAR
+        function guardarOActualizarProducto() {
+            const codigo = document.getElementById('nuevoCodigo').value.trim();
+            const descripcion = document.getElementById('nuevaDescripcion').value.trim();
+            const unidadMedida = document.getElementById('nuevaUnidad').value;
+            const cantidadMax = document.getElementById('nuevaCantMax').value;
+            const idTipo = document.getElementById('nuevoTipo').value;
+            const estado = document.getElementById('nuevoEstado').value;
+            const observacion = document.getElementById('nuevaObservacion').value.trim();
 
-    // 6. ELIMINAR PRODUCTO
-    function eliminarProducto(idCatalogo) {
-        if (!confirm(`¿Estás seguro de que deseas eliminar el producto ID: ${idCatalogo}?`)) return;
-
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'deleteCatalogoItem',
-                id: idCatalogo
-            }),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                const tr = document.getElementById(`row-item-${idCatalogo}`);
-                if (tr) tr.remove();
-                if (idProductoEditando == idCatalogo) cancelarEdicion();
-            } else {
-                alert('Error: ' + data.message);
+            if (!codigo || !descripcion) {
+                alert('El código y la descripción son obligatorios.');
+                return;
             }
-        })
-        .catch(err => alert('Error al procesar la solicitud.'));
-    }
-</script>
+
+            const productoData = {
+                Codigo: codigo,
+                Descripcion: descripcion,
+                Unidad_Medida: unidadMedida,
+                Cantidad_Max: cantidadMax,
+                ID_Tipo: idTipo,
+                Estado: estado,
+                Observacion: observacion
+            };
+
+            let payload = {};
+            if (idProductoEditando !== null) {
+                productoData.ID_Catalogo = idProductoEditando;
+                payload = { action: 'updateCatalogoItem', producto: productoData };
+            } else {
+                payload = { action: 'addCatalogoItem', producto: productoData };
+            }
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    alert(idProductoEditando ? 'Producto actualizado exitosamente.' : 'Producto agregado exitosamente.');
+                    cancelarEdicion();
+                    cargarCatalogo();
+                } else {
+                    alert('Error al guardar: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error de conexión al procesar la solicitud.'));
+        }
+
+        // 7. ELIMINAR PRODUCTO
+        function eliminarProducto(idCatalogo) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar el producto ID: ${idCatalogo}?`)) return;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'deleteCatalogoItem',
+                    id: idCatalogo
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const tr = document.getElementById(`row-item-${idCatalogo}`);
+                    if (tr) tr.remove();
+                    if (idProductoEditando == idCatalogo) cancelarEdicion();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error al procesar la solicitud.'));
+        }
+    </script>
 </body>
 </html>
