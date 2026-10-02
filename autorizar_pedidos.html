@@ -495,9 +495,9 @@
             })
             .then(res => res.json())
             .then(data => {
-                // Ahora sí verificamos que Apps Script no haya arrojado un error interno
                 if (data.status === 'success') {
-                    alert('✅ Solicitud autorizada exitosamente. El técnico ha sido notificado.');
+                    // Muestra el mensaje exacto que armamos en Apps Script
+                    alert(data.message); 
                     cargarPedidos();
                 } else {
                     alert('❌ Error del servidor: ' + data.message);
@@ -532,10 +532,12 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert('🚫 Solicitud anulada. El técnico ha sido notificado.');
+                    // Muestra el mensaje exacto que armamos en Apps Script
+                    alert(data.message); 
                     cargarPedidos();
                 } else {
                     alert('❌ Error del servidor: ' + data.message);
+                    console.error(data.message);
                 }
             })
             .catch(err => alert('Error de conexión al anular el pedido.'));
