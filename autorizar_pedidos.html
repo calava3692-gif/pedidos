@@ -355,7 +355,7 @@
                 if (data.status === 'success') {
                     procesarPedidos(data.pedidos);
                 } else {
-                    alert('Error: ' + data.message);
+                    alert('Error del servidor: ' + data.message);
                 }
             })
             .catch(err => {
@@ -374,6 +374,7 @@
                 document.getElementById('usuarioTecnico').value = '-';
                 document.getElementById('fechaConsulta').value = '-';
                 document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="empty-row">No hay solicitudes pendientes asignadas</td></tr>';
+                document.getElementById('badgeEstado').textContent = 'Al día';
                 return;
             }
 
@@ -441,20 +442,24 @@
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'eliminarItem',
-                    rowNum: rowNum
+                    rowNum: parseInt(rowNum) // Aseguramos que sea entero
                 }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             })
             .then(res => res.json())
             .then(data => {
-                const tr = document.getElementById(`row-item-${rowNum}`);
-                if (tr) tr.remove();
-                
-                if (document.querySelectorAll('#tableBody tr').length === 0) {
-                    cargarPedidos();
+                if (data.status === 'success') {
+                    const tr = document.getElementById(`row-item-${rowNum}`);
+                    if (tr) tr.remove();
+                    
+                    if (document.querySelectorAll('#tableBody tr').length === 0) {
+                        cargarPedidos();
+                    }
+                } else {
+                    alert('Error al eliminar: ' + data.message);
                 }
             })
-            .catch(err => alert('Error al procesar la solicitud.'));
+            .catch(err => alert('Error de red al procesar la solicitud.'));
         }
 
         function autorizarPedidoActual() {
@@ -471,8 +476,9 @@
 
             inputs.forEach(input => {
                 modificaciones.push({
-                    rowNum: input.getAttribute('data-rownum'),
-                    nuevaCantidad: input.value
+                    // CRÍTICO: Convertimos los strings a números antes de enviar
+                    rowNum: parseInt(input.getAttribute('data-rownum')),
+                    nuevaCantidad: Number(input.value)
                 });
             });
 
@@ -482,17 +488,26 @@
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'autorizarPedido',
-                    numPedido: idSolicitud,
+                    numPedido: idSolicitud, // Enviado como identificador (puede ser texto o número, el backend lo maneja)
                     modificaciones: modificaciones
                 }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             })
             .then(res => res.json())
             .then(data => {
-                alert('Solicitud autorizada exitosamente.');
-                cargarPedidos();
+                // Ahora sí verificamos que Apps Script no haya arrojado un error interno
+                if (data.status === 'success') {
+                    alert('✅ Solicitud autorizada exitosamente. El técnico ha sido notificado.');
+                    cargarPedidos();
+                } else {
+                    alert('❌ Error del servidor: ' + data.message);
+                    console.error(data.message);
+                }
             })
-            .catch(err => alert('Error al autorizar el pedido.'));
+            .catch(err => {
+                alert('Error de conexión al autorizar el pedido.');
+                console.error(err);
+            });
         }
 
         function anularPedidoActual() {
@@ -516,10 +531,14 @@
             })
             .then(res => res.json())
             .then(data => {
-                alert('Solicitud anulada.');
-                cargarPedidos();
+                if (data.status === 'success') {
+                    alert('🚫 Solicitud anulada. El técnico ha sido notificado.');
+                    cargarPedidos();
+                } else {
+                    alert('❌ Error del servidor: ' + data.message);
+                }
             })
-            .catch(err => alert('Error al anular el pedido.'));
+            .catch(err => alert('Error de conexión al anular el pedido.'));
         }
     </script>
 </body>
