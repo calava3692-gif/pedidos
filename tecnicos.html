@@ -555,12 +555,12 @@
             document.getElementById('txtPassword').value = '';
             document.getElementById('cmbEstado').value = 'ACTIVO';
 
-            // Pre-seleccionar coordinador actual
+            // Auto-seleccionar el coordinador logueado en el combo
             if (idCoordinadorLogueado) {
-                document.getElementById('cmbCoordinador').value = idCoordinadorLogueado;
+                document.getElementById('cmbCoordinador').value = String(idCoordinadorLogueado);
             }
 
-            document.getElementById('modalTecnico').style.display = 'flex';
+        document.getElementById('modalTecnico').style.display = 'flex';
         }
 
         function editarTecnico(id) {
