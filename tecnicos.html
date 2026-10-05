@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Técnicos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d2a;
+            --card-inner-bg: #0f1623;
+            --input-bg: #0b101b;
+            --border-color: #232f45;
+            --text-main: #e2e8f0;
+            --text-muted: #8a99ad;
+            --btn-primary: #2d5b88;
+            --btn-primary-hover: #3b73aa;
+            --btn-secondary: #243246;
+            --btn-secondary-hover: #31435e;
+            --btn-danger: #8f2d2d;
+            --btn-danger-hover: #b83a3a;
+            --badge-active-bg: #14532d;
+            --badge-active-text: #86efac;
+            --badge-inactive-bg: #7f1d1d;
+            --badge-inactive-text: #fca5a5;
+            --accent-blue: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 18px 18px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 1100px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            margin: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-header {
+            background-color: var(--btn-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 9px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-header:hover {
+            background-color: var(--btn-secondary-hover);
+        }
+
+        .btn-add {
+            background-color: var(--btn-primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-add:hover {
+            background-color: var(--btn-primary-hover);
+        }
+
+        /* Barra de búsqueda */
+        .filter-section {
+            background-color: var(--card-inner-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 9px 12px 9px 36px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Tabla de datos */
+        .table-container {
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .data-table th {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            padding: 12px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .badge-status {
+            display: inline-block;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge-activo {
+            background-color: var(--badge-active-bg);
+            color: var(--badge-active-text);
+        }
+
+        .badge-inactivo {
+            background-color: var(--badge-inactive-bg);
+            color: var(--badge-inactive-text);
+        }
+
+        .btn-action-icon {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-action-icon:hover {
+            color: #ffffff;
+            background-color: var(--btn-secondary);
+        }
+
+        .btn-action-icon.edit:hover {
+            color: var(--accent-blue);
+        }
+
+        .btn-action-icon.toggle:hover {
+            color: #f87171;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 520px;
+            padding: 24px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 18px;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-modal-cancel {
+            background-color: var(--btn-secondary);
+            color: var(--text-main);
+        }
+
+        .btn-modal-save {
+            background-color: var(--btn-primary);
+            color: white;
+        }
+
+        .btn-modal-save:hover {
+            background-color: var(--btn-primary-hover);
+        }
+
+        .empty-row {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <!-- Encabezado -->
+        <div class="card-header">
+            <h2>👷 Gestión de Técnicos</h2>
+            <div class="header-buttons">
+                <button class="btn-header btn-add" onclick="abrirModalCrear()">
+                    <i class="fas fa-plus"></i> Nuevo Técnico
+                </button>
+                <button class="btn-header" onclick="cargarTecnicos()" title="Actualizar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Búsqueda y Filtro -->
+        <div class="filter-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre o usuario..." oninput="filtrarTabla()">
+            </div>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Coordinador</th>
+                        <th>Rol</th>
+                        <th>Cuadrilla</th>
+                        <th style="text-align: center;">Estado</th>
+                        <th style="text-align: center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="8" class="empty-row">Cargando técnicos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <a href="dashboard.html" class="btn-header" style="text-decoration: none; display: inline-flex; width: fit-content;">
+                ⬅️ Volver al Menú
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal Formulario -->
+    <div class="modal-overlay" id="modalTecnico">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Técnico</h3>
+                <button class="btn-action-icon" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalIdTecnico">
+
+                <div class="form-group">
+                    <label for="txtNombre">Nombre Completo:</label>
+                    <input type="text" id="txtNombre" class="form-control" placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div class="form-group">
+                    <label for="txtUsuario">Usuario:</label>
+                    <input type="text" id="txtUsuario" class="form-control" placeholder="Ej: jperez">
+                </div>
+
+                <div class="form-group">
+                    <label for="txtPassword">Contraseña:</label>
+                    <input type="text" id="txtPassword" class="form-control" placeholder="Contraseña de acceso">
+                </div>
+
+                <div class="form-group">
+                    <label for="cmbCoordinador">Coordinador A Cargo:</label>
+                    <select id="cmbCoordinador" class="form-control"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cmbRol">Rol Asignado:</label>
+                    <select id="cmbRol" class="form-control"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cmbCuadrilla">Cuadrilla Asignada:</label>
+                    <select id="cmbCuadrilla" class="form-control"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cmbEstado">Estado:</label>
+                    <select id="cmbEstado" class="form-control">
+                        <option value="ACTIVO">ACTIVO</option>
+                        <option value="INACTIVO">INACTIVO</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-modal btn-modal-save" onclick="guardarTecnico()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
+
+        const usuarioLogueado = localStorage.getItem('usuarioLogueado') || localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'calava';
+
+        let listaTecnicos = [];
+        let listaRoles = [];
+        let listaCuadrillas = [];
+        let listaCoordinadores = [];
+        let idCoordinadorLogueado = '';
+
+        document.addEventListener('DOMContentLoaded', cargarTecnicos);
+
+        function cargarTecnicos() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-row"><i class="fas fa-spinner fa-spin"></i> Cargando datos...</td></tr>';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getTecnicosGestion',
+                    usuarioLogueado: usuarioLogueado
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    listaTecnicos = data.tecnicos || [];
+                    listaRoles = data.roles || [];
+                    listaCuadrillas = data.cuadrillas || [];
+                    listaCoordinadores = data.coordinadores || [];
+                    idCoordinadorLogueado = data.idCoordinadorLogueado || '';
+
+                    poblarCombos();
+                    renderTabla(listaTecnicos);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-row">Error al conectar con la base de datos.</td></tr>';
+            });
+        }
+
+        function poblarCombos() {
+            const cmbRol = document.getElementById('cmbRol');
+            const cmbCuadrilla = document.getElementById('cmbCuadrilla');
+            const cmbCoordinador = document.getElementById('cmbCoordinador');
+
+            cmbRol.innerHTML = '';
+            listaRoles.forEach(r => {
+                cmbRol.innerHTML += `<option value="${r.id}">${r.nombre}</option>`;
+            });
+
+            cmbCuadrilla.innerHTML = '';
+            listaCuadrillas.forEach(c => {
+                cmbCuadrilla.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+            });
+
+            cmbCoordinador.innerHTML = '';
+            listaCoordinadores.forEach(coord => {
+                cmbCoordinador.innerHTML += `<option value="${coord.id}">${coord.nombre}</option>`;
+            });
+        }
+
+        function renderTabla(datos) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-row">No se encontraron técnicos asignados.</td></tr>';
+                return;
+            }
+
+            datos.forEach(item => {
+                const tr = document.createElement('tr');
+                const badgeClass = item.estado === 'ACTIVO' ? 'badge-activo' : 'badge-inactivo';
+
+                tr.innerHTML = `
+                    <td><b>${item.idTecnico}</b></td>
+                    <td>${item.nombre}</td>
+                    <td><code>${item.usuario}</code></td>
+                    <td>${item.coordinadorNombre}</td>
+                    <td>${item.rolNombre}</td>
+                    <td>${item.cuadrillaNombre}</td>
+                    <td style="text-align: center;">
+                        <span class="badge-status ${badgeClass}">${item.estado}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn-action-icon edit" onclick="editarTecnico(${item.idTecnico})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action-icon toggle" onclick="toggleEstado(${item.idTecnico}, '${item.estado}')" title="Cambiar Estado">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filtrarTabla() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtrados = listaTecnicos.filter(t => 
+                t.nombre.toLowerCase().includes(query) || 
+                t.usuario.toLowerCase().includes(query)
+            );
+            renderTabla(filtrados);
+        }
+
+        function abrirModalCrear() {
+            document.getElementById('modalTitle').textContent = 'Nuevo Técnico';
+            document.getElementById('modalIdTecnico').value = '';
+            document.getElementById('txtNombre').value = '';
+            document.getElementById('txtUsuario').value = '';
+            document.getElementById('txtPassword').value = '';
+            document.getElementById('cmbEstado').value = 'ACTIVO';
+
+            // Pre-seleccionar coordinador actual
+            if (idCoordinadorLogueado) {
+                document.getElementById('cmbCoordinador').value = idCoordinadorLogueado;
+            }
+
+            document.getElementById('modalTecnico').style.display = 'flex';
+        }
+
+        function editarTecnico(id) {
+            const tec = listaTecnicos.find(t => String(t.idTecnico) === String(id));
+            if (!tec) return;
+
+            document.getElementById('modalTitle').textContent = 'Editar Técnico #' + tec.idTecnico;
+            document.getElementById('modalIdTecnico').value = tec.idTecnico;
+            document.getElementById('txtNombre').value = tec.nombre;
+            document.getElementById('txtUsuario').value = tec.usuario;
+            document.getElementById('txtPassword').value = tec.password;
+            document.getElementById('cmbCoordinador').value = tec.idCoordinador;
+            document.getElementById('cmbRol').value = tec.idRol;
+            document.getElementById('cmbCuadrilla').value = tec.idCuadrilla;
+            document.getElementById('cmbEstado').value = tec.estado;
+
+            document.getElementById('modalTecnico').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalTecnico').style.display = 'none';
+        }
+
+        function guardarTecnico() {
+            const idTecnico = document.getElementById('modalIdTecnico').value;
+            const nombre = document.getElementById('txtNombre').value.trim();
+            const usuario = document.getElementById('txtUsuario').value.trim();
+            const password = document.getElementById('txtPassword').value.trim();
+            const idCoordinador = document.getElementById('cmbCoordinador').value;
+            const idRol = document.getElementById('cmbRol').value;
+            const idCuadrilla = document.getElementById('cmbCuadrilla').value;
+            const estado = document.getElementById('cmbEstado').value;
+
+            if (!nombre || !usuario || !password) {
+                alert('Por favor, completa los campos de Nombre, Usuario y Contraseña.');
+                return;
+            }
+
+            const payload = {
+                action: idTecnico ? 'updateTecnico' : 'addTecnico',
+                tecnico: {
+                    idTecnico: idTecnico,
+                    nombre: nombre,
+                    usuario: usuario,
+                    password: password,
+                    idCoordinador: idCoordinador,
+                    idRol: idRol,
+                    idCuadrilla: idCuadrilla,
+                    estado: estado
+                }
+            };
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    cerrarModal();
+                    cargarTecnicos();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error al guardar el técnico.'));
+        }
+
+        function toggleEstado(idTecnico, estadoActual) {
+            const nuevoEstado = estadoActual === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+            if (!confirm(`¿Deseas cambiar el estado del técnico a ${nuevoEstado}?`)) return;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'toggleEstadoTecnico',
+                    idTecnico: idTecnico,
+                    nuevoEstado: nuevoEstado
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    cargarTecnicos();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error al cambiar el estado.'));
+        }
+    </script>
+</body>
+</html>
