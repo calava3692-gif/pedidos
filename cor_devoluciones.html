@@ -161,6 +161,7 @@
             border-collapse: collapse;
             font-size: 11px;
             font-family: Arial, sans-serif;
+            margin-top: 10px;
         }
 
         .doc-table td, .doc-table th {
@@ -341,17 +342,34 @@
 
             for (let i = 0; i < totalFilas; i++) {
                 const item = items[i] || {};
+                
+                // Mapeo adaptado para abarcar tanto llaves antiguas como la nueva estructura
+                const tarea = item.tarea || item.Tarea || '';
+                const login = item.login || item.Login || '';
+                const tecnico = item.tecnico || item.Tecnico || '';
+                const modelo = item.modelo || item.Modelo || '';
+                const serie = item.serie || item.Serie || '';
+                const punta_ini = item.punta_ini || item.inicial || item.Inicial || '';
+                const punta_fin = item.punta_fin || item.final || item.Final || '';
+                const serieAuto = item.serieAuto || item.serie_automatica || item.Serie_Automatica || '';
+                const estado = item.estado || item.Estado || '';
+                const usuario = item.usuario || item.Usuario || '';
+                const devCant = item.devCant || item.devolucion || item.Devolucion || item.cant || '';
+
                 rowsHTML += `
                     <tr>
-                        <td style="height: 24px;">${item.cant || ''}</td>
-                        <td>${item.login || ''}</td>
-                        <td>${item.tecnico || ''}</td>
-                        <td>${item.modelo || ''}</td>
-                        <td>${item.serie || ''}</td>
-                        <td>${item.serieAuto || ''}</td>
-                        <td>${item.estado || ''}</td>
-                        <td>${item.usuario || ''}</td>
-                        <td>${item.devCant || ''}</td>
+                        <td style="border: none; background: transparent;"></td> <!-- A -->
+                        <td style="height: 24px;">${tarea}</td> <!-- B -->
+                        <td>${login}</td> <!-- C -->
+                        <td>${tecnico}</td> <!-- D -->
+                        <td>${modelo}</td> <!-- E -->
+                        <td>${serie}</td> <!-- F -->
+                        <td>${punta_ini}</td> <!-- G -->
+                        <td>${punta_fin}</td> <!-- H -->
+                        <td>${serieAuto}</td> <!-- I -->
+                        <td>${estado}</td> <!-- J -->
+                        <td>${usuario}</td> <!-- K -->
+                        <td>${devCant}</td> <!-- L -->
                     </tr>
                 `;
             }
@@ -370,44 +388,54 @@
                 </div>
 
                 <table class="doc-table">
-                    <!-- Selector Tipo -->
+                    <!-- Fila 6: Selector Tipo (12 Columnas en total) -->
                     <tr>
+                        <td style="border: none; background: transparent; width: 2%;"></td>
                         <td colspan="2" class="bg-gray-header">SOLICITUD</td>
-                        <td colspan="4" style="text-align: left;">${meta.esSolicitud ? 'X' : ''}</td>
+                        <td colspan="6"></td>
                         <td colspan="2" class="bg-gray-header">DEVOLUCION</td>
-                        <td>${meta.esDevolucion ? 'X' : 'X'}</td>
+                        <td>X</td>
                     </tr>
 
-                    <!-- Metadatos de Cabecera -->
+                    <!-- Fila 8: Metadatos de Cabecera -->
                     <tr class="bg-gray-header">
-                        <td>Fecha de Solicitud</td>
-                        <td>Solicitado por:</td>
-                        <td colspan="4">Autorizado por:</td>
-                        <td colspan="2">Departamento/División</td>
-                        <td>Fecha de Entrega</td>
+                        <td style="width: 9%;">Fecha de Solicitud</td>
+                        <td colspan="2" style="width: 15%;">Solicitado por:</td>
+                        <td colspan="3" style="width: 22%;">Autorizado por:</td>
+                        <td colspan="3" style="width: 22%;">Recibido por:</td>
+                        <td colspan="2" style="width: 15%;">Departamento/División</td>
+                        <td style="width: 9%;">Fecha de Entrega</td>
                     </tr>
+                    <!-- Fila 9: Datos Cabecera -->
                     <tr>
                         <td><b>${meta.fechaSolicitud || ''}</b></td>
-                        <td>${meta.solicitadoPor || ''}</td>
-                        <td colspan="4"><b>${meta.autorizadoPor || ''}</b></td>
-                        <td colspan="2">${meta.departamento || 'OPERATIVOS'}</td>
+                        <td colspan="2">${meta.solicitadoPor || ''}</td>
+                        <td colspan="3"><b>${meta.autorizadoPor || ''}</b></td>
+                        <td colspan="3">${meta.recibidoPor || ''}</td>
+                        <td colspan="2">${meta.departamento || 'OPU'}</td>
                         <td>${meta.fechaEntrega || ''}</td>
                     </tr>
 
-                    <!-- Encabezados de la Tabla -->
+                    <!-- Fila 10 y 11: Encabezados de la Tabla Items -->
                     <tr class="bg-gray-header">
-                        <td style="width: 6%;">Cant.</td>
-                        <td style="width: 12%;">LOGIN</td>
-                        <td style="width: 22%;">Técnico</td>
-                        <td style="width: 18%;">Modelo</td>
-                        <td style="width: 14%;">Serie</td>
-                        <td style="width: 10%;">Serie Automatica</td>
-                        <td style="width: 6%;">Estado</td>
-                        <td style="width: 6%;">Usuario</td>
-                        <td style="width: 6%;">Devolución (Cant.)</td>
+                        <td rowspan="2" style="border: none; background: transparent;"></td> <!-- Columna A oculta -->
+                        <td rowspan="2" style="width: 8%;">Tarea</td>
+                        <td rowspan="2" style="width: 9%;">Login</td>
+                        <td rowspan="2" style="width: 16%;">Técnico</td>
+                        <td rowspan="2" style="width: 9%;">Modelo</td>
+                        <td rowspan="2" style="width: 10%;">Serie</td>
+                        <td colspan="2">Puntas</td>
+                        <td rowspan="2" style="width: 9%;">Serie Automatica</td>
+                        <td rowspan="2" style="width: 6%;">Estado</td>
+                        <td rowspan="2" style="width: 6%;">Usuario</td>
+                        <td rowspan="2" style="width: 7%;">Devolución (Cant.)</td>
+                    </tr>
+                    <tr class="bg-gray-header">
+                        <td style="width: 5%;">Inicial</td>
+                        <td style="width: 5%;">Final</td>
                     </tr>
 
-                    <!-- Filas de Datos -->
+                    <!-- Filas de Datos (B-L) -->
                     ${rowsHTML}
                 </table>
             `;
