@@ -10,7 +10,7 @@
         }
     })();
 
-    // Función global para cerrar sesión (puedes asignarla al botón de Salir)
+    // Función global para cerrar sesión
     function cerrarSesion() {
         localStorage.clear();
         window.location.href = 'index.html';
@@ -249,6 +249,7 @@
             <h3><i class="fas fa-database"></i> Mi Sistema</h3>
         </div>
         <ul class="sidebar-menu">
+            <!-- Inicio -->
             <li>
                 <a href="#" class="active"><i class="fas fa-home menu-icon"></i> Inicio</a>
             </li>
@@ -258,7 +259,7 @@
                 <a href="autorizar_pedidos.html"><i class="fas fa-shopping-cart menu-icon"></i> Pedidos</a>
             </li>
 
-            <!-- Submenú Inventario (Equipos y Fibras) -->
+            <!-- Submenú Inventario -->
             <li class="has-submenu">
                 <a href="javascript:void(0)" onclick="toggleSubmenu(this)">
                     <span><i class="fas fa-box menu-icon"></i> Inventario</span>
@@ -266,38 +267,38 @@
                 </a>
                 <ul class="submenu">
                     <li><a href="catalogo.html"><i class="fas fa-server menu-icon"></i> Equipos & Fibras</a></li>
-                    
                 </ul>
             </li>
 
-            <li>
+            <!-- Submenú Reportes -->
+            <li class="has-submenu">
                 <a href="javascript:void(0)" onclick="toggleSubmenu(this)">
-                    <span><i class="fas fa-box menu-icon"></i> Reportes </span>
+                    <span><i class="fas fa-chart-bar menu-icon"></i> Reportes </span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
                 <ul class="submenu">
-                    <li><a href="catalogo.html"><i class="fas fa-server menu-icon"></i> Reporte Pedidos</a></li>
-                    <li><a href="catalogo.html"><i class="fas fa-server menu-icon"></i> Reporte Devoluciones</a></li>
+                    <li><a href="rep_pedidos.html"><i class="fas fa-file-alt menu-icon"></i> Reporte Pedidos</a></li>
+                    <li><a href="rep_devoluciones.html"><i class="fas fa-undo menu-icon"></i> Reporte Devoluciones</a></li>
+                    <li><a href="cor_devoluciones.html"><i class="fas fa-envelope menu-icon"></i> Enviar correos Devoluciones</a></li>
                 </ul>
-
             </li>
 
-            <!-- Submenú Configuración (Gestión de Usuarios y Roles) -->
+            <!-- Submenú Configuración -->
             <li class="has-submenu">
                 <a href="javascript:void(0)" onclick="toggleSubmenu(this)">
                     <span><i class="fas fa-cog menu-icon"></i> Configuración</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
                 <ul class="submenu">
-                    <li><a href="#"><i class="fas fa-users menu-icon"></i> Gestión de Usuarios</a></li>
-                    <li><a href="tecnicos.html"><i class="fas fa-users menu-icon"></i> Técnicos</a></li>
-                    <li><a href="#"><i class="fas fa-user-shield menu-icon"></i> Roles y Permisos</a></li>
+                    <li><a href="usuarios.html"><i class="fas fa-users menu-icon"></i> Gestión de Usuarios</a></li>
+                    <li><a href="tecnicos.html"><i class="fas fa-tools menu-icon"></i> Gestión de Técnicos</a></li>
+                    <li><a href="roles.html"><i class="fas fa-user-shield menu-icon"></i> Roles y Permisos</a></li>
                 </ul>
             </li>
         </ul>
         
         <!-- Redirección al login y cierre de sesión -->
-        <a href="index.html" class="logout-btn" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        <a href="javascript:void(0)" class="logout-btn" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
     </nav>
 
     <!-- Contenido Principal -->
@@ -351,7 +352,7 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
 
-        // Función para desplegar los submenús (Inventario y Configuración)
+        // Función para desplegar los submenús (Inventario, Reportes y Configuración)
         function toggleSubmenu(element) {
             const parentLi = element.parentElement;
             parentLi.classList.toggle('open');
@@ -407,11 +408,6 @@
                 console.error('Error al obtener conteo de pedidos:', err);
                 countElement.innerText = '0';
             });
-        }
-
-        function cerrarSesion() {
-            localStorage.clear();
-            window.location.href = 'index.html';
         }
     </script>
 </body>
