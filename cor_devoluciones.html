@@ -224,7 +224,7 @@
                     <input type="text" id="txtDestinatarios" class="form-control" value="bodega@telconet.ec, coordinacion@telconet.ec">
                 </div>
                 <button class="btn btn-send" id="btnEnviar" onclick="enviarCorreo()">
-                    <i class="fas fa-envelope"></i> Enviar Formato por Correo
+                    <i class="fas fa-file-excel"></i> Enviar Formato Excel por Correo
                 </button>
             </div>
         </div>
@@ -350,15 +350,15 @@
         function enviarCorreo() {
             const destinatarios = document.getElementById('txtDestinatarios').value.trim();
             const btn = document.getElementById('btnEnviar');
-
+        
             if (!destinatarios) {
                 alert('Por favor, ingresa al menos un correo de destino.');
                 return;
             }
-
+        
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF y enviando...';
-
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Excel y enviando...';
+        
             fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -382,7 +382,7 @@
             })
             .finally(() => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-envelope"></i> Enviar Formato por Correo';
+                btn.innerHTML = '<i class="fas fa-file-excel"></i> Enviar Formato Excel por Correo';
             });
         }
     </script>
