@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+    // Validar sesión iniciada
+    (function comprobarSesion() {
+        const usuario = localStorage.getItem('usuarioLogueado');
+        if (!usuario) {
+            window.location.href = 'index.html';
+        }
+    })();
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envío de Devoluciones a Bodega</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d2a;
+            --card-inner-bg: #0f1623;
+            --input-bg: #0b101b;
+            --border-color: #232f45;
+            --text-main: #e2e8f0;
+            --text-muted: #8a99ad;
+            --btn-primary: #1d4ed8;
+            --btn-primary-hover: #2563eb;
+            --btn-success: #15803d;
+            --btn-success-hover: #16a34a;
+            --btn-secondary: #243246;
+            --accent-blue: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 18px 18px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Panel de Control */
+        .control-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .control-header h2 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            background-color: var(--card-inner-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-send {
+            background-color: var(--btn-success);
+            color: white;
+        }
+
+        .btn-send:hover {
+            background-color: var(--btn-success-hover);
+        }
+
+        .btn-back {
+            background-color: var(--btn-secondary);
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        /* Estilos de Documento / Papel Oficial */
+        .paper-wrapper {
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            overflow-x: auto;
+        }
+
+        .doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+        }
+
+        .doc-table td, .doc-table th {
+            border: 1px solid #000000;
+            padding: 5px 6px;
+            text-align: center;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .brand-logo {
+            font-weight: 900;
+            font-size: 26px;
+            font-style: italic;
+            color: #003366;
+            line-height: 1;
+        }
+
+        .brand-sub {
+            font-size: 9px;
+            color: #555;
+            font-style: normal;
+        }
+
+        .doc-main-title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .doc-sub-code {
+            font-size: 10px;
+            text-align: center;
+            color: #333;
+        }
+
+        .bg-gray-header {
+            background-color: #e5e7eb;
+            font-weight: bold;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Panel superior -->
+        <div class="control-card">
+            <div class="control-header">
+                <h2><i class="fas fa-paper-plane" style="color: var(--accent-blue);"></i> Enviar Correos Devoluciones</h2>
+                <a href="dashboard.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Volver al Menú</a>
+            </div>
+
+            <div class="email-form">
+                <div class="form-group">
+                    <label for="txtDestinatarios">Direcciones de correo de destino (separadas por coma):</label>
+                    <input type="text" id="txtDestinatarios" class="form-control" value="bodega@telconet.ec, coordinacion@telconet.ec">
+                </div>
+                <button class="btn btn-send" id="btnEnviar" onclick="enviarCorreo()">
+                    <i class="fas fa-envelope"></i> Enviar Formato por Correo
+                </button>
+            </div>
+        </div>
+
+        <!-- Documento de Visualización -->
+        <div class="paper-wrapper" id="paperContainer">
+            <div class="status-msg"><i class="fas fa-spinner fa-spin"></i> Cargando vista previa del formato...</div>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
+        const usuarioLogueado = localStorage.getItem('usuarioLogueado') || 'calava';
+
+        document.addEventListener('DOMContentLoaded', cargarFormato);
+
+        function cargarFormato() {
+            const paper = document.getElementById('paperContainer');
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getFormatoDevolucion',
+                    usuarioLogueado: usuarioLogueado
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    renderizarDocumento(data.metadata, data.items);
+                } else {
+                    paper.innerHTML = `<div class="status-msg" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> ${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                paper.innerHTML = `<div class="status-msg" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> Error al conectar con el servidor.</div>`;
+            });
+        }
+
+        function renderizarDocumento(meta, items) {
+            const paper = document.getElementById('paperContainer');
+
+            let rowsHTML = '';
+            // Construir hasta 10 filas visibles por defecto para simular la hoja oficial
+            const totalFilas = Math.max(items.length, 8);
+
+            for (let i = 0; i < totalFilas; i++) {
+                const item = items[i] || {};
+                rowsHTML += `
+                    <tr>
+                        <td style="height: 24px;">${item.cant || ''}</td>
+                        <td>${item.login || ''}</td>
+                        <td>${item.tecnico || ''}</td>
+                        <td>${item.modelo || ''}</td>
+                        <td>${item.serie || ''}</td>
+                        <td>${item.serieAuto || ''}</td>
+                        <td>${item.estado || ''}</td>
+                        <td>${item.usuario || ''}</td>
+                        <td>${item.devCant || ''}</td>
+                    </tr>
+                `;
+            }
+
+            paper.innerHTML = `
+                <div class="logo-title-container">
+                    <div class="brand-logo">
+                        telconet
+                        <div class="brand-sub">la fibra del Ecuador</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="doc-main-title">Solicitud/Devolución a Bodega</div>
+                        <div class="doc-sub-code">FOR BOD 01 Ver 21 05 13</div>
+                    </div>
+                    <div style="width: 120px;"></div>
+                </div>
+
+                <table class="doc-table">
+                    <!-- Selector Tipo -->
+                    <tr>
+                        <td colspan="2" class="bg-gray-header">SOLICITUD</td>
+                        <td colspan="4" style="text-align: left;">${meta.esSolicitud ? 'X' : ''}</td>
+                        <td colspan="2" class="bg-gray-header">DEVOLUCION</td>
+                        <td>${meta.esDevolucion ? 'X' : 'X'}</td>
+                    </tr>
+
+                    <!-- Metadatos de Cabecera -->
+                    <tr class="bg-gray-header">
+                        <td>Fecha de Solicitud</td>
+                        <td>Solicitado por:</td>
+                        <td colspan="4">Autorizado por:</td>
+                        <td colspan="2">Departamento/División</td>
+                        <td>Fecha de Entrega</td>
+                    </tr>
+                    <tr>
+                        <td><b>${meta.fechaSolicitud || ''}</b></td>
+                        <td>${meta.solicitadoPor || ''}</td>
+                        <td colspan="4"><b>${meta.autorizadoPor || ''}</b></td>
+                        <td colspan="2">${meta.departamento || 'OPERATIVOS'}</td>
+                        <td>${meta.fechaEntrega || ''}</td>
+                    </tr>
+
+                    <!-- Encabezados de la Tabla -->
+                    <tr class="bg-gray-header">
+                        <td style="width: 6%;">Cant.</td>
+                        <td style="width: 12%;">LOGIN</td>
+                        <td style="width: 22%;">Técnico</td>
+                        <td style="width: 18%;">Modelo</td>
+                        <td style="width: 14%;">Serie</td>
+                        <td style="width: 10%;">Serie Automatica</td>
+                        <td style="width: 6%;">Estado</td>
+                        <td style="width: 6%;">Usuario</td>
+                        <td style="width: 6%;">Devolución (Cant.)</td>
+                    </tr>
+
+                    <!-- Filas de Datos -->
+                    ${rowsHTML}
+                </table>
+            `;
+        }
+
+        function enviarCorreo() {
+            const destinatarios = document.getElementById('txtDestinatarios').value.trim();
+            const btn = document.getElementById('btnEnviar');
+
+            if (!destinatarios) {
+                alert('Por favor, ingresa al menos un correo de destino.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF y enviando...';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'enviarCorreoDevolucion',
+                    usuarioLogueado: usuarioLogueado,
+                    destinatarios: destinatarios
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Ocurrió un error al intentar enviar el correo.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-envelope"></i> Enviar Formato por Correo';
+            });
+        }
+    </script>
+</body>
+</html>
