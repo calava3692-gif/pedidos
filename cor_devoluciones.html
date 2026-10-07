@@ -343,7 +343,7 @@
             for (let i = 0; i < totalFilas; i++) {
                 const item = items[i] || {};
                 
-                // Mapeo adaptado para abarcar tanto llaves antiguas como la nueva estructura
+                // Mapeo de datos
                 const tarea = item.tarea || item.Tarea || '';
                 const login = item.login || item.Login || '';
                 const tecnico = item.tecnico || item.Tecnico || '';
@@ -356,20 +356,20 @@
                 const usuario = item.usuario || item.Usuario || '';
                 const devCant = item.devCant || item.devolucion || item.Devolucion || item.cant || '';
 
+                // Eliminamos la columna A invisible, ahora mapea directo a la columna Tarea (11 columnas)
                 rowsHTML += `
                     <tr>
-                        <td style="border: none; background: transparent;"></td> <!-- A -->
-                        <td style="height: 24px;">${tarea}</td> <!-- B -->
-                        <td>${login}</td> <!-- C -->
-                        <td>${tecnico}</td> <!-- D -->
-                        <td>${modelo}</td> <!-- E -->
-                        <td>${serie}</td> <!-- F -->
-                        <td>${punta_ini}</td> <!-- G -->
-                        <td>${punta_fin}</td> <!-- H -->
-                        <td>${serieAuto}</td> <!-- I -->
-                        <td>${estado}</td> <!-- J -->
-                        <td>${usuario}</td> <!-- K -->
-                        <td>${devCant}</td> <!-- L -->
+                        <td style="height: 24px;">${tarea}</td>
+                        <td>${login}</td>
+                        <td>${tecnico}</td>
+                        <td>${modelo}</td>
+                        <td>${serie}</td>
+                        <td>${punta_ini}</td>
+                        <td>${punta_fin}</td>
+                        <td>${serieAuto}</td>
+                        <td>${estado}</td>
+                        <td>${usuario}</td>
+                        <td>${devCant}</td>
                     </tr>
                 `;
             }
@@ -388,54 +388,52 @@
                 </div>
 
                 <table class="doc-table">
-                    <!-- Fila 6: Selector Tipo (12 Columnas en total) -->
+                    <!-- Fila 6: Selector Tipo (11 Columnas Exactas) -->
                     <tr>
-                        <td style="border: none; background: transparent; width: 2%;"></td>
-                        <td colspan="2" class="bg-gray-header">SOLICITUD</td>
-                        <td colspan="6"></td>
+                        <td colspan="3" class="bg-gray-header">SOLICITUD</td>
+                        <td colspan="5"></td>
                         <td colspan="2" class="bg-gray-header">DEVOLUCION</td>
                         <td>X</td>
                     </tr>
 
                     <!-- Fila 8: Metadatos de Cabecera -->
                     <tr class="bg-gray-header">
-                        <td style="width: 9%;">Fecha de Solicitud</td>
-                        <td colspan="2" style="width: 15%;">Solicitado por:</td>
-                        <td colspan="3" style="width: 22%;">Autorizado por:</td>
-                        <td colspan="3" style="width: 22%;">Recibido por:</td>
-                        <td colspan="2" style="width: 15%;">Departamento/División</td>
-                        <td style="width: 9%;">Fecha de Entrega</td>
+                        <td style="width: 10%;">Fecha de Solicitud</td>
+                        <td colspan="2" style="width: 18%;">Solicitado por:</td>
+                        <td colspan="3" style="width: 24%;">Autorizado por:</td>
+                        <td colspan="2" style="width: 18%;">Recibido por:</td>
+                        <td colspan="2" style="width: 20%;">Departamento/División</td>
+                        <td style="width: 10%;">Fecha de Entrega</td>
                     </tr>
                     <!-- Fila 9: Datos Cabecera -->
                     <tr>
                         <td><b>${meta.fechaSolicitud || ''}</b></td>
                         <td colspan="2">${meta.solicitadoPor || ''}</td>
                         <td colspan="3"><b>${meta.autorizadoPor || ''}</b></td>
-                        <td colspan="3">${meta.recibidoPor || ''}</td>
+                        <td colspan="2">${meta.recibidoPor || ''}</td>
                         <td colspan="2">${meta.departamento || 'OPU'}</td>
                         <td>${meta.fechaEntrega || ''}</td>
                     </tr>
 
                     <!-- Fila 10 y 11: Encabezados de la Tabla Items -->
                     <tr class="bg-gray-header">
-                        <td rowspan="2" style="border: none; background: transparent;"></td> <!-- Columna A oculta -->
                         <td rowspan="2" style="width: 8%;">Tarea</td>
-                        <td rowspan="2" style="width: 9%;">Login</td>
-                        <td rowspan="2" style="width: 16%;">Técnico</td>
-                        <td rowspan="2" style="width: 9%;">Modelo</td>
+                        <td rowspan="2" style="width: 10%;">Login</td>
+                        <td rowspan="2" style="width: 18%;">Técnico</td>
+                        <td rowspan="2" style="width: 10%;">Modelo</td>
                         <td rowspan="2" style="width: 10%;">Serie</td>
                         <td colspan="2">Puntas</td>
-                        <td rowspan="2" style="width: 9%;">Serie Automatica</td>
-                        <td rowspan="2" style="width: 6%;">Estado</td>
-                        <td rowspan="2" style="width: 6%;">Usuario</td>
-                        <td rowspan="2" style="width: 7%;">Devolución (Cant.)</td>
+                        <td rowspan="2" style="width: 10%;">Serie Automatica</td>
+                        <td rowspan="2" style="width: 7%;">Estado</td>
+                        <td rowspan="2" style="width: 7%;">Usuario</td>
+                        <td rowspan="2" style="width: 10%;">Devolución (Cant.)</td>
                     </tr>
                     <tr class="bg-gray-header">
                         <td style="width: 5%;">Inicial</td>
                         <td style="width: 5%;">Final</td>
                     </tr>
 
-                    <!-- Filas de Datos (B-L) -->
+                    <!-- Filas de Datos -->
                     ${rowsHTML}
                 </table>
             `;
