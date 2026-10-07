@@ -84,12 +84,16 @@
             padding: 15px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            flex-wrap: wrap;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
+        }
+
+        .form-group.flex-grow {
             flex-grow: 1;
         }
 
@@ -108,6 +112,10 @@
             border-radius: 6px;
             font-size: 14px;
             outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-blue);
         }
 
         .btn {
@@ -219,10 +227,21 @@
             </div>
 
             <div class="email-form">
-                <div class="form-group">
+                <!-- Combobox de Formatos/Documentos -->
+                <div class="form-group" style="min-width: 240px;">
+                    <label for="cmbFormato">DOCUMENTO / FORMATO:</label>
+                    <select id="cmbFormato" class="form-control" onchange="cargarFormatoSeleccionado()">
+                        <option value="">Cargando lista...</option>
+                    </select>
+                </div>
+
+                <!-- Input de Destinatarios -->
+                <div class="form-group flex-grow">
                     <label for="txtDestinatarios">Direcciones de correo de destino (separadas por coma):</label>
                     <input type="text" id="txtDestinatarios" class="form-control" value="bodega@telconet.ec, coordinacion@telconet.ec">
                 </div>
+
+                <!-- Botón de Envío -->
                 <button class="btn btn-send" id="btnEnviar" onclick="enviarCorreo()">
                     <i class="fas fa-file-excel"></i> Enviar Formato Excel por Correo
                 </button>
@@ -239,15 +258,63 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
         const usuarioLogueado = localStorage.getItem('usuarioLogueado') || 'calava';
 
-        document.addEventListener('DOMContentLoaded', cargarFormato);
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarListaFormatos();
+        });
 
-        function cargarFormato() {
+        function cargarListaFormatos() {
+            const cmb = document.getElementById('cmbFormato');
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getListaFormatosDevolucion' }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.formatos && data.formatos.length > 0) {
+                    cmb.innerHTML = '';
+                    let seleccionadoPorDefecto = '';
+
+                    data.formatos.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.nombreHoja;
+                        option.textContent = `${item.nombreHoja} (${item.usuario})`;
+                        cmb.appendChild(option);
+
+                        if (item.usuario.toLowerCase() === usuarioLogueado.toLowerCase() || item.nombreHoja === 'FORMATO_' + usuarioLogueado) {
+                            seleccionadoPorDefecto = item.nombreHoja;
+                        }
+                    });
+
+                    if (seleccionadoPorDefecto) {
+                        cmb.value = seleccionadoPorDefecto;
+                    }
+
+                    cargarFormatoSeleccionado();
+                } else {
+                    cmb.innerHTML = `<option value="FORMATO_${usuarioLogueado}">FORMATO_${usuarioLogueado}</option>`;
+                    cargarFormatoSeleccionado();
+                }
+            })
+            .catch(err => {
+                console.error('Error al cargar lista de formatos:', err);
+                cmb.innerHTML = `<option value="FORMATO_${usuarioLogueado}">FORMATO_${usuarioLogueado}</option>`;
+                cargarFormatoSeleccionado();
+            });
+        }
+
+        function cargarFormatoSeleccionado() {
             const paper = document.getElementById('paperContainer');
+            const formatoSel = document.getElementById('cmbFormato').value || ('FORMATO_' + usuarioLogueado);
+
+            paper.innerHTML = '<div class="status-msg"><i class="fas fa-spinner fa-spin"></i> Cargando vista previa del formato...</div>';
 
             fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'getFormatoDevolucion',
+                    formatoSeleccionado: formatoSel,
                     usuarioLogueado: usuarioLogueado
                 }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
@@ -270,7 +337,6 @@
             const paper = document.getElementById('paperContainer');
 
             let rowsHTML = '';
-            // Construir hasta 10 filas visibles por defecto para simular la hoja oficial
             const totalFilas = Math.max(items.length, 8);
 
             for (let i = 0; i < totalFilas; i++) {
@@ -349,20 +415,27 @@
 
         function enviarCorreo() {
             const destinatarios = document.getElementById('txtDestinatarios').value.trim();
+            const formatoSel = document.getElementById('cmbFormato').value;
             const btn = document.getElementById('btnEnviar');
-        
+
             if (!destinatarios) {
                 alert('Por favor, ingresa al menos un correo de destino.');
                 return;
             }
-        
+
+            if (!formatoSel) {
+                alert('Por favor, selecciona un documento/formato.');
+                return;
+            }
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Excel y enviando...';
-        
+
             fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'enviarCorreoDevolucion',
+                    formatoSeleccionado: formatoSel,
                     usuarioLogueado: usuarioLogueado,
                     destinatarios: destinatarios
                 }),
