@@ -357,18 +357,18 @@
 
                 rowsHTML += `
                     <tr>
-                        <td style="width: 25px; background-color: #f9fafb;"></td> <!-- Columna A (Margen idéntico al Excel) -->
-                        <td style="height: 24px;">${tarea}</td>
-                        <td>${login}</td>
-                        <td>${tecnico}</td>
-                        <td>${modelo}</td>
-                        <td>${serie}</td>
-                        <td>${punta_ini}</td>
-                        <td>${punta_fin}</td>
-                        <td>${serieAuto}</td>
-                        <td>${estado}</td>
-                        <td>${usuario}</td>
-                        <td>${devCant}</td>
+                        <td style="width: 20px; background-color: #f9fafb; border: 1px solid #000;"></td> <!-- Columna A (Margen) -->
+                        <td style="height: 24px;">${tarea}</td> <!-- B -->
+                        <td>${login}</td> <!-- C -->
+                        <td>${tecnico}</td> <!-- D -->
+                        <td>${modelo}</td> <!-- E -->
+                        <td>${serie}</td> <!-- F -->
+                        <td>${punta_ini}</td> <!-- G -->
+                        <td>${punta_fin}</td> <!-- H -->
+                        <td>${serieAuto}</td> <!-- I -->
+                        <td>${estado}</td> <!-- J -->
+                        <td>${usuario}</td> <!-- K -->
+                        <td>${devCant}</td> <!-- L -->
                     </tr>
                 `;
             }
@@ -387,50 +387,52 @@
                 </div>
 
                 <table class="doc-table">
-                    <!-- Fila 6: Selector Tipo (12 Columnas en total respetando Columna A) -->
+                    <!-- Fila 6: Tipo (SOLICITUD / DEVOLUCION / X) -->
                     <tr>
-                        <td style="background-color: #f9fafb;"></td>
-                        <td colspan="3" class="bg-gray-header">SOLICITUD</td>
-                        <td colspan="4" style="border: 1px solid #000;"></td>
+                        <td style="background-color: #f9fafb; border: 1px solid #000;"></td>
+                        <td colspan="5" class="bg-gray-header">SOLICITUD</td>
+                        <td colspan="3" style="border: 1px solid #000;"></td>
                         <td colspan="2" class="bg-gray-header">DEVOLUCION</td>
-                        <td colspan="2" style="font-weight: bold;">X</td>
+                        <td style="font-weight: bold; background-color: #e5e7eb;">X</td>
                     </tr>
 
-                    <!-- Fila 8: Metadatos de Cabecera -->
+                    <!-- Fila 8: Metadatos de Cabecera (Etiquetas) -->
                     <tr class="bg-gray-header">
-                        <td style="background-color: #f9fafb;"></td>
+                        <td style="background-color: #f9fafb; border: 1px solid #000;"></td>
                         <td style="width: 9%;">Fecha de Solicitud</td>
-                        <td colspan="2" style="width: 18%;">Solicitado por:</td>
-                        <td colspan="4" style="width: 26%;">Autorizado por:</td>
-                        <td colspan="2" style="width: 18%;">Departamento/División</td>
-                        <td colspan="2" style="width: 18%;">Fecha de Entrega</td>
-                    </tr>
-                    <!-- Fila 9: Datos Cabecera -->
-                    <tr>
-                        <td style="background-color: #f9fafb;"></td>
-                        <td><b>${meta.fechaSolicitud || ''}</b></td>
-                        <td colspan="2">${meta.solicitadoPor || ''}</td>
-                        <td colspan="4"><b>${meta.autorizadoPor || ''}</b></td>
-                        <td colspan="2">${meta.departamento || 'OPU'}</td>
-                        <td colspan="2">${meta.fechaEntrega || ''}</td>
+                        <td style="width: 12%;">Solicitado por:</td>
+                        <td colspan="3" style="width: 24%;">Autorizado por:</td>
+                        <td colspan="3" style="width: 22%;">Recibido por:</td>
+                        <td colspan="2" style="width: 16%;">Departamento/División</td>
+                        <td style="width: 10%;">Fecha de Entrega</td>
                     </tr>
 
-                    <!-- Fila 10 y 11: Encabezados de la Tabla Items -->
+                    <!-- Fila 9: Datos de Cabecera (Valores) -->
+                    <tr>
+                        <td style="background-color: #f9fafb; border: 1px solid #000;"></td>
+                        <td><b>${meta.fechaSolicitud || ''}</b></td>
+                        <td>${meta.solicitadoPor || ''}</td>
+                        <td colspan="3"><b>${meta.autorizadoPor || ''}</b></td>
+                        <td colspan="3">${meta.recibidoPor || ''}</td>
+                        <td colspan="2">${meta.departamento || 'OPU'}</td>
+                        <td>${meta.fechaEntrega || ''}</td>
+                    </tr>
+
+                    <!-- Fila 10 y 11: Encabezados de la Tabla de Ítems -->
                     <tr class="bg-gray-header">
-                        <td style="background-color: #f9fafb;"></td>
+                        <td rowspan="2" style="background-color: #f9fafb; border: 1px solid #000;"></td>
                         <td rowspan="2" style="width: 8%;">Tarea</td>
-                        <td rowspan="2" style="width: 9%;">Login</td>
+                        <td rowspan="2" style="width: 10%;">Login</td>
                         <td rowspan="2" style="width: 16%;">Técnico</td>
                         <td rowspan="2" style="width: 9%;">Modelo</td>
                         <td rowspan="2" style="width: 10%;">Serie</td>
                         <td colspan="2">Puntas</td>
-                        <td rowspan="2" style="width: 10%;">Serie Automatica</td>
+                        <td rowspan="2" style="width: 9%;">Serie Automatica</td>
                         <td rowspan="2" style="width: 6%;">Estado</td>
                         <td rowspan="2" style="width: 6%;">Usuario</td>
                         <td rowspan="2" style="width: 8%;">Devolución (Cant.)</td>
                     </tr>
                     <tr class="bg-gray-header">
-                        <td style="background-color: #f9fafb;"></td>
                         <td style="width: 5%;">Inicial</td>
                         <td style="width: 5%;">Final</td>
                     </tr>
