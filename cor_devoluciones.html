@@ -1,481 +1,2349 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
+    <!-- =========================================================
+         VALIDACIÓN DE SESIÓN
+    ========================================================== -->
     <script>
-    // Validar sesión iniciada
-    (function comprobarSesion() {
-        const usuario = localStorage.getItem('usuarioLogueado');
-        if (!usuario) {
-            window.location.href = 'index.html';
-        }
-    })();
+        (function comprobarSesion() {
+            const usuario = localStorage.getItem('usuarioLogueado');
+
+            if (!usuario) {
+                window.location.href = 'index.html';
+            }
+        })();
     </script>
-    
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envío de Devoluciones a Bodeg</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <title>Envío de Devoluciones a Bodega</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <!-- =========================================================
+         ESTILOS
+    ========================================================== -->
     <style>
+
         :root {
             --bg-color: #0b0f19;
             --card-bg: #151d2a;
             --card-inner-bg: #0f1623;
             --input-bg: #0b101b;
             --border-color: #232f45;
+
             --text-main: #e2e8f0;
             --text-muted: #8a99ad;
+
             --btn-primary: #1d4ed8;
             --btn-primary-hover: #2563eb;
+
             --btn-success: #15803d;
             --btn-success-hover: #16a34a;
+
             --btn-secondary: #243246;
+
             --accent-blue: #38bdf8;
+        }
+
+
+        /* =====================================================
+           PÁGINA
+        ====================================================== */
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             padding: 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            font-family:
+                'Segoe UI',
+                Tahoma,
+                Geneva,
+                Verdana,
+                sans-serif;
+
             background-color: var(--bg-color);
-            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+
+            background-image:
+                radial-gradient(
+                    #1e293b 1px,
+                    transparent 1px
+                );
+
             background-size: 18px 18px;
+
             color: var(--text-main);
+
             display: flex;
             justify-content: center;
         }
 
+
         .container {
             width: 100%;
-            max-width: 1150px;
+            max-width: 1250px;
+
             display: flex;
             flex-direction: column;
+
             gap: 20px;
         }
 
-        /* Panel de Control */
+
+        /* =====================================================
+           PANEL DE CONTROL
+        ====================================================== */
+
         .control-card {
             background-color: var(--card-bg);
+
             border: 1px solid var(--border-color);
+
             border-radius: 12px;
+
             padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.4);
         }
+
 
         .control-header {
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             margin-bottom: 15px;
         }
 
+
         .control-header h2 {
             margin: 0;
+
             font-size: 20px;
+
             display: flex;
+
             align-items: center;
+
             gap: 10px;
         }
 
+
         .email-form {
             display: flex;
+
             gap: 12px;
+
             align-items: flex-end;
+
             background-color: var(--card-inner-bg);
+
             padding: 15px;
+
             border-radius: 8px;
+
             border: 1px solid var(--border-color);
+
             flex-wrap: wrap;
         }
 
+
         .form-group {
             display: flex;
+
             flex-direction: column;
+
             gap: 6px;
         }
+
 
         .form-group.flex-grow {
             flex-grow: 1;
         }
 
+
         .form-group label {
             font-size: 11px;
+
             font-weight: 700;
+
             color: var(--text-muted);
+
             text-transform: uppercase;
         }
 
+
         .form-control {
             background-color: var(--input-bg);
+
             border: 1px solid var(--border-color);
+
             color: var(--text-main);
+
             padding: 10px 12px;
+
             border-radius: 6px;
+
             font-size: 14px;
+
             outline: none;
         }
+
 
         .form-control:focus {
             border-color: var(--accent-blue);
         }
 
+
         .btn {
             padding: 10px 18px;
+
             border-radius: 6px;
+
             font-size: 14px;
+
             font-weight: 600;
+
             cursor: pointer;
+
             border: none;
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 8px;
+
             transition: all 0.2s;
         }
 
+
         .btn-send {
             background-color: var(--btn-success);
+
             color: white;
         }
+
 
         .btn-send:hover {
             background-color: var(--btn-success-hover);
         }
 
+
+        .btn-send:disabled {
+            opacity: 0.65;
+
+            cursor: wait;
+        }
+
+
         .btn-back {
             background-color: var(--btn-secondary);
+
             color: var(--text-main);
+
             text-decoration: none;
         }
 
-        /* Estilos del Documento Oficial Estilo Excel */
+
+        .btn-back:hover {
+            background-color: #334155;
+        }
+
+
+        /* =====================================================
+           CONTENEDOR DEL DOCUMENTO
+        ====================================================== */
+
         .paper-wrapper {
-            background-color: #ffffff;
+
+            width: 100%;
+
+            background: #ffffff;
+
             color: #000000;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+            border-radius: 0;
+
+            padding: 0;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.6);
+
             overflow-x: auto;
         }
 
-        .doc-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            font-family: Arial, sans-serif;
-            margin-top: 10px;
+
+        /*
+         * Contenedor con el ancho exacto de referencia
+         * del documento mostrado.
+         */
+        .documento {
+
+            width: 1200px;
+
+            min-width: 1200px;
+
+            background: #ffffff;
+
+            color: #000000;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            font-size: 10px;
+
+            line-height: 1.1;
+
+            margin: 0 auto;
+
+            border-top: 1px solid #000;
         }
 
-        .doc-table td, .doc-table th {
-            border: 1px solid #000000;
-            padding: 3px 4px;
-            text-align: center;
-            height: 22px;
-            vertical-align: middle;
-            word-break: break-word;
-        }
 
-        .logo-title-container {
-            display: flex;
+        /* =====================================================
+           CABECERA / LOGO / TÍTULO
+        ====================================================== */
+
+        .cabecera-documento {
+
+            height: 70px;
+
+            display: grid;
+
+            grid-template-columns: 250px 1fr 250px;
+
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
+
+            border-bottom: 1px solid #d7d7d7;
         }
 
-        .bg-gray-header {
-            background-color: #d9d9d9;
-            font-weight: bold;
-            font-size: 11px;
+
+        .logo-area {
+
+            height: 70px;
+
+            display: flex;
+
+            align-items: center;
+
+            padding-left: 15px;
         }
+
+
+        /*
+         * Representación del logotipo.
+         * Si posteriormente tienes el archivo real del logo,
+         * solamente reemplaza este bloque por una <img>.
+         */
+        .telconet-logo {
+
+            position: relative;
+
+            display: inline-block;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            font-size: 27px;
+
+            font-weight: 900;
+
+            font-style: italic;
+
+            letter-spacing: -1.5px;
+
+            color: #111111;
+
+            padding-right: 17px;
+        }
+
+
+        .telconet-logo::after {
+
+            content: "";
+
+            position: absolute;
+
+            right: 0;
+
+            top: 1px;
+
+            width: 24px;
+
+            height: 36px;
+
+            border-right: 2px solid #1683c7;
+
+            border-top: 2px solid #1683c7;
+
+            border-radius: 50%;
+        }
+
+
+        .telconet-subtitulo {
+
+            display: block;
+
+            margin-top: -2px;
+
+            margin-left: 1px;
+
+            font-size: 8px;
+
+            font-style: normal;
+
+            font-weight: normal;
+
+            letter-spacing: 0;
+
+            color: #555555;
+        }
+
+
+        .titulo-area {
+
+            text-align: center;
+
+            align-self: center;
+        }
+
+
+        .titulo-principal {
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            line-height: 24px;
+
+            margin: 0;
+        }
+
+
+        .codigo-formato {
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            line-height: 22px;
+
+            margin: 0;
+        }
+
+
+        .cabecera-derecha {
+
+            height: 100%;
+        }
+
+
+        /* =====================================================
+           TABLA SUPERIOR:
+           SOLICITUD / DEVOLUCION
+        ====================================================== */
+
+        .tabla-tipo {
+
+            width: 100%;
+
+            height: 34px;
+
+            border-collapse: collapse;
+
+            table-layout: fixed;
+
+            font-size: 10px;
+        }
+
+
+        .tabla-tipo td {
+
+            border: 1px solid #000;
+
+            padding: 0;
+
+            text-align: center;
+
+            vertical-align: middle;
+
+            height: 17px;
+        }
+
+
+        /*
+         * 1200px
+         *
+         * 98  = margen inicial
+         * 185 = solicitud
+         * 186 = espacio
+         * 465 = espacio central
+         * 165 = devolución
+         * 101 = X
+         */
+        .tipo-margen {
+            width: 98px;
+
+            border-left: none !important;
+        }
+
+
+        .tipo-solicitud {
+            width: 185px;
+
+            font-weight: bold;
+
+            background: #ffffff;
+        }
+
+
+        .tipo-espacio-1 {
+            width: 186px;
+        }
+
+
+        .tipo-espacio-2 {
+            width: 465px;
+        }
+
+
+        .tipo-devolucion {
+            width: 165px;
+
+            font-weight: bold;
+        }
+
+
+        .tipo-x {
+
+            width: 101px;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           INFORMACIÓN GENERAL
+        ====================================================== */
+
+        .tabla-metadata {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            table-layout: fixed;
+
+            font-size: 10px;
+        }
+
+
+        .tabla-metadata th {
+
+            height: 19px;
+
+            border: 1px solid #000;
+
+            background: #dbe5f1;
+
+            padding: 2px 4px;
+
+            text-align: center;
+
+            font-weight: bold;
+
+            vertical-align: middle;
+        }
+
+
+        .tabla-metadata td {
+
+            height: 18px;
+
+            border: 1px solid #000;
+
+            padding: 2px 4px;
+
+            text-align: center;
+
+            vertical-align: middle;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+        }
+
+
+        .metadata-fecha-solicitud {
+            width: 98px;
+        }
+
+
+        .metadata-solicitado {
+            width: 185px;
+        }
+
+
+        .metadata-autorizado {
+            width: 414px;
+        }
+
+
+        .metadata-recibido {
+            width: 237px;
+        }
+
+
+        .metadata-departamento {
+            width: 165px;
+        }
+
+
+        .metadata-fecha-entrega {
+            width: 101px;
+        }
+
+
+        /* =====================================================
+           TABLA DE MATERIALES
+        ====================================================== */
+
+        .tabla-items {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            table-layout: fixed;
+
+            font-size: 10px;
+        }
+
+
+        .tabla-items th {
+
+            background: #b7b7b7;
+
+            border: 1px solid #000;
+
+            padding: 3px 3px;
+
+            text-align: center;
+
+            vertical-align: middle;
+
+            font-weight: bold;
+
+            height: 17px;
+        }
+
+
+        .tabla-items td {
+
+            border: 1px solid #000;
+
+            padding: 3px 3px;
+
+            text-align: center;
+
+            vertical-align: middle;
+
+            height: 18px;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+        }
+
+
+        /* =====================================================
+           ANCHOS DE COLUMNAS
+        ====================================================== */
+
+        .col-tarea {
+            width: 98px;
+        }
+
+
+        .col-login {
+            width: 185px;
+        }
+
+
+        .col-tecnico {
+            width: 186px;
+        }
+
+
+        .col-modelo {
+            width: 89px;
+        }
+
+
+        .col-serie {
+            width: 139px;
+        }
+
+
+        .col-punta {
+            width: 54px;
+        }
+
+
+        .col-serie-auto {
+            width: 129px;
+        }
+
+
+        .col-estado {
+            width: 79px;
+        }
+
+
+        .col-usuario {
+            width: 86px;
+        }
+
+
+        .col-devolucion {
+            width: 101px;
+        }
+
+
+        /* =====================================================
+           ENCABEZADO PUNTAS
+        ====================================================== */
+
+        .puntas {
+
+            background: #b7b7b7;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           FILAS VACÍAS
+        ====================================================== */
+
+        .fila-vacia td {
+
+            height: 17px;
+
+            padding: 0;
+        }
+
+
+        /* =====================================================
+           ESTADOS
+        ====================================================== */
+
+        .estado-uso {
+            text-transform: uppercase;
+        }
+
+
+        /* =====================================================
+           MENSAJES
+        ====================================================== */
 
         .status-msg {
+
+            width: 100%;
+
+            min-height: 200px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
             text-align: center;
+
             padding: 20px;
+
             font-size: 14px;
-            color: var(--text-muted);
+
+            color: #64748b;
         }
+
+
+        .error-msg {
+
+            color: #dc2626;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           IMPRESIÓN
+        ====================================================== */
+
+        @media print {
+
+            body {
+
+                margin: 0;
+
+                padding: 0;
+
+                background: #ffffff;
+            }
+
+
+            .control-card {
+
+                display: none !important;
+            }
+
+
+            .container {
+
+                max-width: none;
+
+                width: 100%;
+
+                display: block;
+            }
+
+
+            .paper-wrapper {
+
+                box-shadow: none;
+
+                width: 100%;
+
+                overflow: visible;
+            }
+
+
+            .documento {
+
+                margin: 0;
+
+                width: 1200px;
+
+                min-width: 1200px;
+
+                box-shadow: none;
+            }
+        }
+
+
+        /* =====================================================
+           PANTALLAS PEQUEÑAS
+        ====================================================== */
+
+        @media screen and (max-width: 900px) {
+
+            body {
+                padding: 10px;
+            }
+
+
+            .control-header {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 12px;
+            }
+
+
+            .email-form {
+
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+
+            .form-group {
+
+                width: 100% !important;
+            }
+        }
+
     </style>
+
 </head>
+
+
 <body>
 
-    <div class="container">
-        <!-- Panel superior -->
-        <div class="control-card">
-            <div class="control-header">
-                <h2><i class="fas fa-paper-plane" style="color: var(--accent-blue);"></i> Enviar Correos Devoluciones</h2>
-                <a href="dashboard.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Volver al Menú</a>
-            </div>
+<div class="container">
 
-            <div class="email-form">
-                <!-- Combobox de Formatos/Documentos -->
-                <div class="form-group" style="min-width: 240px;">
-                    <label for="cmbFormato">DOCUMENTO / FORMATO:</label>
-                    <select id="cmbFormato" class="form-control" onchange="cargarFormatoSeleccionado()">
-                        <option value="">Cargando lista...</option>
-                    </select>
-                </div>
 
-                <!-- Input de Destinatarios -->
-                <div class="form-group flex-grow">
-                    <label for="txtDestinatarios">Direcciones de correo de destino (separadas por coma):</label>
-                    <input type="text" id="txtDestinatarios" class="form-control" value="bodega@telconet.ec, coordinacion@telconet.ec">
-                </div>
+    <!-- =====================================================
+         PANEL DE CONTROL
+    ====================================================== -->
 
-                <!-- Botón de Envío -->
-                <button class="btn btn-send" id="btnEnviar" onclick="enviarCorreo()">
-                    <i class="fas fa-file-excel"></i> Enviar Formato Excel por Correo
-                </button>
-            </div>
+    <div class="control-card">
+
+        <div class="control-header">
+
+            <h2>
+                <i
+                    class="fas fa-paper-plane"
+                    style="color: var(--accent-blue);">
+                </i>
+
+                Enviar Correos Devoluciones
+            </h2>
+
+
+            <a
+                href="dashboard.html"
+                class="btn btn-back">
+
+                <i class="fas fa-arrow-left"></i>
+
+                Volver al Menú
+
+            </a>
+
         </div>
 
-        <!-- Documento de Visualización -->
-        <div class="paper-wrapper" id="paperContainer">
-            <div class="status-msg"><i class="fas fa-spinner fa-spin"></i> Cargando vista previa del formato...</div>
+
+        <div class="email-form">
+
+
+            <!-- DOCUMENTO -->
+
+            <div
+                class="form-group"
+                style="min-width: 240px;">
+
+                <label for="cmbFormato">
+                    DOCUMENTO / FORMATO:
+                </label>
+
+
+                <select
+                    id="cmbFormato"
+                    class="form-control"
+                    onchange="cargarFormatoSeleccionado()">
+
+                    <option value="">
+                        Cargando lista...
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- DESTINATARIOS -->
+
+            <div
+                class="form-group flex-grow">
+
+                <label for="txtDestinatarios">
+
+                    Direcciones de correo de destino
+                    (separadas por coma):
+
+                </label>
+
+
+                <input
+                    type="text"
+                    id="txtDestinatarios"
+                    class="form-control"
+                    value="bodega@telconet.ec, coordinacion@telconet.ec">
+
+            </div>
+
+
+            <!-- BOTÓN -->
+
+            <button
+                class="btn btn-send"
+                id="btnEnviar"
+                onclick="enviarCorreo()">
+
+                <i class="fas fa-file-excel"></i>
+
+                Enviar Formato Excel por Correo
+
+            </button>
+
         </div>
+
     </div>
 
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
-        const usuarioLogueado = localStorage.getItem('usuarioLogueado') || 'calava';
 
-        document.addEventListener('DOMContentLoaded', () => {
+
+    <!-- =====================================================
+         DOCUMENTO
+    ====================================================== -->
+
+    <div
+        class="paper-wrapper"
+        id="paperContainer">
+
+        <div class="status-msg">
+
+            <i class="fas fa-spinner fa-spin"></i>
+
+            &nbsp;
+
+            Cargando vista previa del formato...
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+
+    /* =========================================================
+       CONFIGURACIÓN
+    ========================================================== */
+
+    const scriptURL =
+        'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
+
+
+    const usuarioLogueado =
+        localStorage.getItem('usuarioLogueado') || 'calava';
+
+
+
+    /* =========================================================
+       INICIO
+    ========================================================== */
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        function () {
+
             cargarListaFormatos();
-        });
 
-        function cargarListaFormatos() {
-            const cmb = document.getElementById('cmbFormato');
+        }
+    );
 
-            fetch(scriptURL, {
+
+
+    /* =========================================================
+       CARGAR LISTA DE FORMATOS
+    ========================================================== */
+
+    function cargarListaFormatos() {
+
+        const cmb =
+            document.getElementById('cmbFormato');
+
+
+        cmb.innerHTML =
+            '<option value="">Cargando lista...</option>';
+
+
+        fetch(
+            scriptURL,
+            {
+
                 method: 'POST',
-                body: JSON.stringify({ action: 'getListaFormatosDevolucion' }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success' && data.formatos && data.formatos.length > 0) {
+
+                body: JSON.stringify({
+
+                    action:
+                        'getListaFormatosDevolucion'
+
+                }),
+
+                headers: {
+
+                    'Content-Type':
+                        'text/plain;charset=utf-8'
+
+                }
+
+            }
+        )
+
+        .then(
+            function (res) {
+
+                return res.json();
+
+            }
+        )
+
+        .then(
+            function (data) {
+
+
+                if (
+                    data.status === 'success' &&
+                    data.formatos &&
+                    data.formatos.length > 0
+                ) {
+
+
                     cmb.innerHTML = '';
-                    let seleccionadoPorDefecto = '';
 
-                    data.formatos.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item.nombreHoja;
-                        option.textContent = `${item.nombreHoja} (${item.usuario})`;
-                        cmb.appendChild(option);
 
-                        if (item.usuario.toLowerCase() === usuarioLogueado.toLowerCase() || item.nombreHoja === 'FORMATO_' + usuarioLogueado) {
-                            seleccionadoPorDefecto = item.nombreHoja;
+                    let seleccionadoPorDefecto =
+                        '';
+
+
+                    data.formatos.forEach(
+                        function (item) {
+
+
+                            const option =
+                                document.createElement(
+                                    'option'
+                                );
+
+
+                            option.value =
+                                item.nombreHoja;
+
+
+                            option.textContent =
+                                `${item.nombreHoja} (${item.usuario})`;
+
+
+                            cmb.appendChild(option);
+
+
+                            if (
+                                item.usuario &&
+                                item.usuario
+                                    .toLowerCase() ===
+                                usuarioLogueado
+                                    .toLowerCase()
+                            ) {
+
+                                seleccionadoPorDefecto =
+                                    item.nombreHoja;
+                            }
+
+
+                            if (
+                                item.nombreHoja ===
+                                'FORMATO_' +
+                                usuarioLogueado
+                            ) {
+
+                                seleccionadoPorDefecto =
+                                    item.nombreHoja;
+                            }
+
                         }
-                    });
+                    );
+
 
                     if (seleccionadoPorDefecto) {
-                        cmb.value = seleccionadoPorDefecto;
+
+                        cmb.value =
+                            seleccionadoPorDefecto;
                     }
 
+
                     cargarFormatoSeleccionado();
-                } else {
-                    cmb.innerHTML = `<option value="FORMATO_${usuarioLogueado}">FORMATO_${usuarioLogueado}</option>`;
+
+                }
+
+                else {
+
+                    cmb.innerHTML = `
+
+                        <option
+                            value="FORMATO_${usuarioLogueado}">
+
+                            FORMATO_${usuarioLogueado}
+
+                        </option>
+
+                    `;
+
+
                     cargarFormatoSeleccionado();
+
                 }
-            })
-            .catch(err => {
-                console.error('Error al cargar lista de formatos:', err);
-                cmb.innerHTML = `<option value="FORMATO_${usuarioLogueado}">FORMATO_${usuarioLogueado}</option>`;
-                cargarFormatoSeleccionado();
-            });
-        }
 
-        function cargarFormatoSeleccionado() {
-            const paper = document.getElementById('paperContainer');
-            const formatoSel = document.getElementById('cmbFormato').value || ('FORMATO_' + usuarioLogueado);
+            }
+        )
 
-            paper.innerHTML = '<div class="status-msg"><i class="fas fa-spinner fa-spin"></i> Cargando vista previa del formato...</div>';
+        .catch(
+            function (err) {
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'getFormatoDevolucion',
-                    formatoSeleccionado: formatoSel,
-                    usuarioLogueado: usuarioLogueado
-                }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    renderizarDocumento(data.metadata, data.items);
-                } else {
-                    paper.innerHTML = `<div class="status-msg" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> ${data.message}</div>`;
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                paper.innerHTML = `<div class="status-msg" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> Error al conectar con el servidor.</div>`;
-            });
-        }
+                console.error(
+                    'Error al cargar lista de formatos:',
+                    err
+                );
 
-        function renderizarDocumento(meta, items) {
-            const paper = document.getElementById('paperContainer');
-            const metaData = meta || {};
-            const itemsList = items || [];
 
-            // Mantener al menos 10 filas visibles para simular la cuadrícula de Excel vacía
-            const totalFilas = Math.max(itemsList.length, 10);
-            let rowsHTML = '';
+                cmb.innerHTML = `
 
-            for (let i = 0; i < totalFilas; i++) {
-                const item = itemsList[i] || {};
-                
-                const tarea = item.tarea || item.Tarea || '';
-                const login = item.login || item.Login || '';
-                const tecnico = item.tecnico || item.Tecnico || '';
-                const modelo = item.modelo || item.Modelo || '';
-                const serie = item.serie || item.Serie || '';
-                const punta_ini = item.punta_ini || item.inicial || item.Inicial || '';
-                const punta_fin = item.punta_fin || item.final || item.Final || '';
-                const serieAuto = item.serieAuto || item.serie_automatica || item.Serie_Automatica || '';
-                const estado = item.estado || item.Estado || '';
-                const usuario = item.usuario || item.Usuario || '';
-                const devCant = item.devCant || item.devolucion || item.Devolucion || item.cant || '';
+                    <option
+                        value="FORMATO_${usuarioLogueado}">
 
-                // Estructura exacta de 12 columnas (A a la L)
-                rowsHTML += `
-                    <tr>
-                        <td style="width: 2%;"></td>
-                        <td style="width: 8%;">${tarea}</td> <!-- Columna A: Tarea -->
-                        <td style="width: 9%;">${login}</td> <!-- Columna B: Login -->
-                        <td style="width: 18%;">${tecnico}</td> <!-- Columna C: Técnico -->
-                        <td style="width: 9%;">${modelo}</td> <!-- Columna D: Modelo -->
-                        <td style="width: 9%;">${serie}</td> <!-- Columna E: Serie -->
-                        <td style="width: 5%;">${punta_ini}</td> <!-- Columna F: Puntas Inicial -->
-                        <td style="width: 5%;">${punta_fin}</td> <!-- Columna G: Puntas Final -->
-                        <td style="width: 10%;">${serieAuto}</td> <!-- Columna H: Serie Automática -->
-                        <td style="width: 7%;">${estado}</td> <!-- Columna I: Estado -->
-                        <td style="width: 6%;">${usuario}</td> <!-- Columna J: Usuario -->
-                        <td style="width: 8%;">${devCant}</td> <!-- Columna K: Devolución (Cant.) -->
-                    </tr>
+                        FORMATO_${usuarioLogueado}
+
+                    </option>
+
                 `;
+
+
+                cargarFormatoSeleccionado();
+
+            }
+        );
+
+    }
+
+
+
+    /* =========================================================
+       CARGAR FORMATO SELECCIONADO
+    ========================================================== */
+
+    function cargarFormatoSeleccionado() {
+
+        const paper =
+            document.getElementById(
+                'paperContainer'
+            );
+
+
+        const cmb =
+            document.getElementById(
+                'cmbFormato'
+            );
+
+
+        const formatoSel =
+            cmb.value ||
+            ('FORMATO_' + usuarioLogueado);
+
+
+        paper.innerHTML = `
+
+            <div class="status-msg">
+
+                <i class="fas fa-spinner fa-spin"></i>
+
+                &nbsp;
+
+                Cargando vista previa del formato...
+
+            </div>
+
+        `;
+
+
+        fetch(
+            scriptURL,
+            {
+
+                method: 'POST',
+
+                body: JSON.stringify({
+
+                    action:
+                        'getFormatoDevolucion',
+
+                    formatoSeleccionado:
+                        formatoSel,
+
+                    usuarioLogueado:
+                        usuarioLogueado
+
+                }),
+
+                headers: {
+
+                    'Content-Type':
+                        'text/plain;charset=utf-8'
+
+                }
+
+            }
+        )
+
+        .then(
+            function (res) {
+
+                return res.json();
+
+            }
+        )
+
+        .then(
+            function (data) {
+
+
+                if (
+                    data.status === 'success'
+                ) {
+
+                    renderizarDocumento(
+                        data.metadata || {},
+                        data.items || []
+                    );
+
+                }
+
+                else {
+
+                    paper.innerHTML = `
+
+                        <div
+                            class="status-msg error-msg">
+
+                            <i
+                                class="fas fa-exclamation-circle">
+                            </i>
+
+                            &nbsp;
+
+                            ${data.message ||
+                              'No fue posible cargar el formato.'}
+
+                        </div>
+
+                    `;
+
+                }
+
+            }
+        )
+
+        .catch(
+            function (err) {
+
+                console.error(err);
+
+
+                paper.innerHTML = `
+
+                    <div
+                        class="status-msg error-msg">
+
+                        <i
+                            class="fas fa-exclamation-circle">
+                        </i>
+
+                        &nbsp;
+
+                        Error al conectar con el servidor.
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+    }
+
+
+
+    /* =========================================================
+       ESCAPAR HTML
+       Evita problemas si algún dato contiene < > & "
+    ========================================================== */
+
+    function escaparHTML(valor) {
+
+        if (
+            valor === null ||
+            valor === undefined
+        ) {
+
+            return '';
+
+        }
+
+
+        return String(valor)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+    }
+
+
+
+    /* =========================================================
+       OBTENER VALOR
+    ========================================================== */
+
+    function obtenerValor(
+        objeto,
+        propiedades
+    ) {
+
+        for (
+            const propiedad of propiedades
+        ) {
+
+            if (
+                objeto[propiedad] !==
+                undefined &&
+                objeto[propiedad] !== null &&
+                objeto[propiedad] !== ''
+            ) {
+
+                return objeto[propiedad];
+
             }
 
-            paper.innerHTML = `
-                <!-- Cabecera con Logo y Título de Documento -->
-                <div class="logo-title-container">
-                    <div style="width: 180px;">
-                        <svg width="170" height="40" viewBox="0 0 170 40">
-                            <!-- Logo SVG Telconet -->
-                            <ellipse cx="60" cy="20" rx="55" ry="16" fill="none" stroke="#003366" stroke-width="2.5" transform="rotate(-8 60 20)" />
-                            <ellipse cx="60" cy="20" rx="45" ry="10" fill="none" stroke="#38bdf8" stroke-width="1.8" transform="rotate(-8 60 20)" />
-                            <text x="20" y="25" font-family="Arial, sans-serif" font-weight="900" font-style="italic" font-size="20" fill="#003366">telconet</text>
-                            <text x="28" y="34" font-family="Arial, sans-serif" font-style="italic" font-size="7.5" fill="#555555">la fibra del Ecuador!</text>
-                        </svg>
+        }
+
+
+        return '';
+
+    }
+
+
+
+    /* =========================================================
+       RENDERIZAR DOCUMENTO
+    ========================================================== */
+
+    function renderizarDocumento(
+        meta,
+        items
+    ) {
+
+
+        const paper =
+            document.getElementById(
+                'paperContainer'
+            );
+
+
+        /*
+         * Aseguramos que items siempre sea un array.
+         */
+        if (!Array.isArray(items)) {
+
+            items = [];
+
+        }
+
+
+
+        /* =====================================================
+           GENERAR FILAS DE MATERIALES
+        ====================================================== */
+
+        let rowsHTML = '';
+
+
+        items.forEach(
+            function (item) {
+
+
+                item = item || {};
+
+
+                const tarea =
+                    obtenerValor(
+                        item,
+                        [
+                            'tarea',
+                            'Tarea'
+                        ]
+                    );
+
+
+                const login =
+                    obtenerValor(
+                        item,
+                        [
+                            'login',
+                            'Login'
+                        ]
+                    );
+
+
+                const tecnico =
+                    obtenerValor(
+                        item,
+                        [
+                            'tecnico',
+                            'Tecnico',
+                            'Técnico'
+                        ]
+                    );
+
+
+                const modelo =
+                    obtenerValor(
+                        item,
+                        [
+                            'modelo',
+                            'Modelo'
+                        ]
+                    );
+
+
+                const serie =
+                    obtenerValor(
+                        item,
+                        [
+                            'serie',
+                            'Serie'
+                        ]
+                    );
+
+
+                const puntaInicial =
+                    obtenerValor(
+                        item,
+                        [
+                            'punta_ini',
+                            'puntaInicial',
+                            'inicial',
+                            'Inicial'
+                        ]
+                    );
+
+
+                const puntaFinal =
+                    obtenerValor(
+                        item,
+                        [
+                            'punta_fin',
+                            'puntaFinal',
+                            'final',
+                            'Final'
+                        ]
+                    );
+
+
+                const serieAutomatica =
+                    obtenerValor(
+                        item,
+                        [
+                            'serieAuto',
+                            'serie_automatica',
+                            'Serie_Automatica',
+                            'Serie Automatica'
+                        ]
+                    );
+
+
+                const estado =
+                    obtenerValor(
+                        item,
+                        [
+                            'estado',
+                            'Estado'
+                        ]
+                    );
+
+
+                const usuario =
+                    obtenerValor(
+                        item,
+                        [
+                            'usuario',
+                            'Usuario'
+                        ]
+                    );
+
+
+                const devolucion =
+                    obtenerValor(
+                        item,
+                        [
+                            'devCant',
+                            'devolucion',
+                            'Devolucion',
+                            'cant',
+                            'cantidad'
+                        ]
+                    );
+
+
+                rowsHTML += `
+
+                    <tr>
+
+                        <td>
+                            ${escaparHTML(tarea)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(login)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(tecnico)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(modelo)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(serie)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(puntaInicial)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(puntaFinal)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(serieAutomatica)}
+                        </td>
+
+                        <td class="estado-uso">
+                            ${escaparHTML(estado)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(usuario)}
+                        </td>
+
+                        <td>
+                            ${escaparHTML(devolucion)}
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        );
+
+
+
+        /* =====================================================
+           AGREGAR FILAS VACÍAS
+           Para conservar apariencia de formulario.
+        ====================================================== */
+
+        const MIN_FILAS =
+            Math.max(
+                4,
+                items.length
+            );
+
+
+        const filasVacias =
+            Math.max(
+                0,
+                MIN_FILAS - items.length
+            );
+
+
+        for (
+            let i = 0;
+            i < filasVacias;
+            i++
+        ) {
+
+            rowsHTML += `
+
+                <tr class="fila-vacia">
+
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+
+                </tr>
+
+            `;
+
+        }
+
+
+
+        /* =====================================================
+           DATOS DE CABECERA
+        ====================================================== */
+
+        const fechaSolicitud =
+            obtenerValor(
+                meta,
+                [
+                    'fechaSolicitud',
+                    'FechaSolicitud',
+                    'fecha_solicitud'
+                ]
+            );
+
+
+        const solicitadoPor =
+            obtenerValor(
+                meta,
+                [
+                    'solicitadoPor',
+                    'SolicitadoPor',
+                    'solicitado_por'
+                ]
+            );
+
+
+        const autorizadoPor =
+            obtenerValor(
+                meta,
+                [
+                    'autorizadoPor',
+                    'AutorizadoPor',
+                    'autorizado_por'
+                ]
+            );
+
+
+        const recibidoPor =
+            obtenerValor(
+                meta,
+                [
+                    'recibidoPor',
+                    'RecibidoPor',
+                    'recibido_por'
+                ]
+            );
+
+
+        const departamento =
+            obtenerValor(
+                meta,
+                [
+                    'departamento',
+                    'Departamento'
+                ]
+            ) || 'OPU';
+
+
+        const fechaEntrega =
+            obtenerValor(
+                meta,
+                [
+                    'fechaEntrega',
+                    'FechaEntrega',
+                    'fecha_entrega'
+                ]
+            );
+
+
+
+        /* =====================================================
+           CONSTRUIR DOCUMENTO
+        ====================================================== */
+
+        paper.innerHTML = `
+
+            <div class="documento">
+
+
+                <!-- =========================================
+                     CABECERA
+                ========================================== -->
+
+                <div class="cabecera-documento">
+
+
+                    <div class="logo-area">
+
+                        <div class="telconet-logo">
+
+                            telconet
+
+                            <span
+                                class="telconet-subtitulo">
+
+                                la fibra del Ecuador
+
+                            </span>
+
+                        </div>
+
                     </div>
-                    <div style="text-align: center; flex-grow: 1;">
-                        <div style="font-size: 18px; font-weight: bold; font-family: Arial, sans-serif;">Solicitud/Devolución a Bodega</div>
-                        <div style="font-size: 15px; font-weight: bold; font-family: Arial, sans-serif; margin-top: 2px;">FOR BOD 01 Ver 21 05 13</div>
+
+
+                    <div class="titulo-area">
+
+                        <div class="titulo-principal">
+
+                            Solicitud/Devolución a Bodega
+
+                        </div>
+
+
+                        <div class="codigo-formato">
+
+                            FOR BOD 01 Ver 21 05 13
+
+                        </div>
+
                     </div>
-                    <div style="width: 180px;"></div>
+
+
+                    <div class="cabecera-derecha"></div>
+
                 </div>
 
-                <!-- Tabla Principal estilo Excel (12 columnas en total) -->
-                <table class="doc-table">
-                    <!-- Fila 1: SOLICITUD / DEVOLUCION / X -->
+
+
+                <!-- =========================================
+                     SOLICITUD / DEVOLUCIÓN
+                ========================================== -->
+
+                <table class="tabla-tipo">
+
+                    <colgroup>
+
+                        <col class="tipo-margen">
+                        <col class="tipo-solicitud">
+                        <col class="tipo-espacio-1">
+                        <col class="tipo-espacio-2">
+                        <col class="tipo-devolucion">
+                        <col class="tipo-x">
+
+                    </colgroup>
+
+
                     <tr>
-                        <td style="width: 2%;"></td> <!-- Columna A -->
-                        <td colspan="2" class="bg-gray-header">SOLICITUD</td> <!-- Cols B, C -->
-                        <td colspan="6"></td> <!-- Cols D, E, F, G, H, I -->
-                        <td colspan="2" class="bg-gray-header">DEVOLUCION</td> <!-- Cols J, K -->
-                        <td class="bg-gray-header" style="font-weight: bold; text-align: center;">x</td> <!-- Col L -->
+
+                        <td
+                            class="tipo-margen"
+                            rowspan="2">
+                        </td>
+
+
+                        <td
+                            class="tipo-solicitud"
+                            rowspan="2">
+
+                            SOLICITUD
+
+                        </td>
+
+
+                        <td
+                            class="tipo-espacio-1"
+                            rowspan="2">
+                        </td>
+
+
+                        <td
+                            class="tipo-espacio-2"
+                            rowspan="2">
+                        </td>
+
+
+                        <td
+                            class="tipo-devolucion">
+
+                            DEVOLUCION
+
+                        </td>
+
+
+                        <td
+                            class="tipo-x">
+
+                            X
+
+                        </td>
+
                     </tr>
 
-                    <!-- Fila 2: Encabezados de Metadatos -->
-                    <tr class="bg-gray-header">
-                        <td></td> <!-- Col A -->
-                        <td>Fecha de Solicitud</td> <!-- Col B -->
-                        <td>Solicitado por:</td> <!-- Col C -->
-                        <td colspan="3">Autorizado por:</td> <!-- Cols D, E, F -->
-                        <td colspan="3">Recibido por:</td> <!-- Cols G, H, I -->
-                        <td colspan="2">Departamento/División</td> <!-- Cols J, K -->
-                        <td>Fecha de Entrega</td> <!-- Col L -->
-                    </tr>
 
-                    <!-- Fila 3: Valores de Metadatos -->
                     <tr>
-                        <td></td> <!-- Col A -->
-                        <td><b>${metaData.fechaSolicitud || ''}</b></td> <!-- Col A -->
-                        <td style="font-size: 10px;">${metaData.solicitadoPor || ''}</td> <!-- Col C -->
-                        <td colspan="3" style="font-size: 10px;"><b>${metaData.autorizadoPor || ''}</b></td> <!-- Cols D, E, F -->
-                        <td colspan="3" style="font-size: 10px;">${metaData.recibidoPor || ''}</td> <!-- Cols G, H, I -->
-                        <td colspan="2"><b>${metaData.departamento || 'OPU'}</b></td> <!-- Cols J, K -->
-                        <td>${metaData.fechaEntrega || ''}</td> <!-- Col L -->
+
+                        <td></td>
+
+                        <td></td>
+
                     </tr>
 
-                    <!-- Fila 4 y 5: Encabezados de Ítems -->
-                    <tr class="bg-gray-header">
-                        <td rowspan="2"></td> <!-- Col A -->
-                        <td rowspan="2">Tarea</td> <!-- Col A -->
-                        <td rowspan="2">Login</td> <!-- Col B -->
-                        <td rowspan="2">Técnico</td> <!-- Col D -->
-                        <td rowspan="2">Modelo</td> <!-- Col E -->
-                        <td rowspan="2">Serie</td> <!-- Col F -->
-                        <td colspan="2">Puntas</td> <!-- Cols G, H -->
-                        <td rowspan="2">Serie Automatica</td> <!-- Col I -->
-                        <td rowspan="2">Estado</td> <!-- Col J -->
-                        <td rowspan="2">Usuario</td> <!-- Col K -->
-                        <td rowspan="2">Devolución (Cant.)</td> <!-- Col L -->
-                    </tr>
-                    <tr class="bg-gray-header">
-                        <td>Inicial</td> <!-- Col G -->
-                        <td>Final</td> <!-- Col H -->
-                    </tr>
-
-                    <!-- Filas de Datos de Ítems (12 columnas exactas) -->
-                    ${rowsHTML}
                 </table>
-            `;
+
+
+
+                <!-- =========================================
+                     INFORMACIÓN GENERAL
+                ========================================== -->
+
+                <table class="tabla-metadata">
+
+                    <colgroup>
+
+                        <col class="metadata-fecha-solicitud">
+
+                        <col class="metadata-solicitado">
+
+                        <col
+                            class="metadata-autorizado">
+
+                        <col
+                            class="metadata-recibido">
+
+                        <col
+                            class="metadata-departamento">
+
+                        <col
+                            class="metadata-fecha-entrega">
+
+                    </colgroup>
+
+
+                    <tr>
+
+                        <th>
+                            Fecha de Solicitud
+                        </th>
+
+
+                        <th>
+                            Solicitado por:
+                        </th>
+
+
+                        <th>
+                            Autorizado por:
+                        </th>
+
+
+                        <th>
+                            Recibido por:
+                        </th>
+
+
+                        <th>
+                            Departamento/División
+                        </th>
+
+
+                        <th>
+                            Fecha de Entrega
+                        </th>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            ${escaparHTML(fechaSolicitud)}
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(solicitadoPor)}
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(autorizadoPor)}
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(recibidoPor)}
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(departamento)}
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(fechaEntrega)}
+                        </td>
+
+                    </tr>
+
+                </table>
+
+
+
+                <!-- =========================================
+                     TABLA DE MATERIALES
+                ========================================== -->
+
+                <table class="tabla-items">
+
+
+                    <colgroup>
+
+                        <col class="col-tarea">
+
+                        <col class="col-login">
+
+                        <col class="col-tecnico">
+
+                        <col class="col-modelo">
+
+                        <col class="col-serie">
+
+                        <col class="col-punta">
+
+                        <col class="col-punta">
+
+                        <col class="col-serie-auto">
+
+                        <col class="col-estado">
+
+                        <col class="col-usuario">
+
+                        <col class="col-devolucion">
+
+                    </colgroup>
+
+
+
+                    <!-- =====================================
+                         PRIMER NIVEL DE ENCABEZADOS
+                    ====================================== -->
+
+                    <tr>
+
+
+                        <th
+                            rowspan="2">
+
+                            Tarea
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Login
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Técnico
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Modelo
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Serie
+
+                        </th>
+
+
+                        <th
+                            colspan="2"
+                            class="puntas">
+
+                            Puntas
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Serie Automatica
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Estado
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Usuario
+
+                        </th>
+
+
+                        <th
+                            rowspan="2">
+
+                            Devolución (Cant.)
+
+                        </th>
+
+
+                    </tr>
+
+
+
+                    <!-- =====================================
+                         SEGUNDO NIVEL DE ENCABEZADOS
+                    ====================================== -->
+
+                    <tr>
+
+
+                        <th>
+                            Inicial
+                        </th>
+
+
+                        <th>
+                            Final
+                        </th>
+
+
+                    </tr>
+
+
+
+                    <!-- =====================================
+                         DATOS
+                    ====================================== -->
+
+                    ${rowsHTML}
+
+
+                </table>
+
+
+            </div>
+
+        `;
+
+    }
+
+
+
+    /* =========================================================
+       ENVIAR CORREO
+    ========================================================== */
+
+    function enviarCorreo() {
+
+
+        const destinatarios =
+            document
+                .getElementById(
+                    'txtDestinatarios'
+                )
+                .value
+                .trim();
+
+
+        const formatoSel =
+            document
+                .getElementById(
+                    'cmbFormato'
+                )
+                .value;
+
+
+        const btn =
+            document.getElementById(
+                'btnEnviar'
+            );
+
+
+
+        /* =====================================================
+           VALIDACIONES
+        ====================================================== */
+
+        if (!destinatarios) {
+
+            alert(
+                'Por favor, ingresa al menos un correo de destino.'
+            );
+
+            return;
         }
 
-        function enviarCorreo() {
-            const destinatarios = document.getElementById('txtDestinatarios').value.trim();
-            const formatoSel = document.getElementById('cmbFormato').value;
-            const btn = document.getElementById('btnEnviar');
 
-            if (!destinatarios) {
-                alert('Por favor, ingresa al menos un correo de destino.');
-                return;
-            }
+        if (!formatoSel) {
 
-            if (!formatoSel) {
-                alert('Por favor, selecciona un documento/formato.');
-                return;
-            }
+            alert(
+                'Por favor, selecciona un documento/formato.'
+            );
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Excel y enviando...';
+            return;
+        }
 
-            fetch(scriptURL, {
+
+
+        /* =====================================================
+           BLOQUEAR BOTÓN
+        ====================================================== */
+
+        btn.disabled = true;
+
+
+        btn.innerHTML = `
+
+            <i class="fas fa-spinner fa-spin"></i>
+
+            Generando Excel y enviando...
+
+        `;
+
+
+
+        /* =====================================================
+           ENVIAR A GOOGLE APPS SCRIPT
+        ====================================================== */
+
+        fetch(
+            scriptURL,
+            {
+
                 method: 'POST',
+
                 body: JSON.stringify({
-                    action: 'enviarCorreoDevolucion',
-                    formatoSeleccionado: formatoSel,
-                    usuarioLogueado: usuarioLogueado,
-                    destinatarios: destinatarios
+
+                    action:
+                        'enviarCorreoDevolucion',
+
+                    formatoSeleccionado:
+                        formatoSel,
+
+                    usuarioLogueado:
+                        usuarioLogueado,
+
+                    destinatarios:
+                        destinatarios
+
                 }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('✅ ' + data.message);
-                } else {
-                    alert('❌ Error: ' + data.message);
+
+                headers: {
+
+                    'Content-Type':
+                        'text/plain;charset=utf-8'
+
                 }
-            })
-            .catch(err => {
+
+            }
+        )
+
+        .then(
+            function (res) {
+
+                return res.json();
+
+            }
+        )
+
+        .then(
+            function (data) {
+
+
+                if (
+                    data.status ===
+                    'success'
+                ) {
+
+                    alert(
+                        '✅ ' +
+                        data.message
+                    );
+
+                }
+
+                else {
+
+                    alert(
+                        '❌ Error: ' +
+                        data.message
+                    );
+
+                }
+
+            }
+        )
+
+        .catch(
+            function (err) {
+
                 console.error(err);
-                alert('Ocurrió un error al intentar enviar el correo.');
-            })
-            .finally(() => {
+
+
+                alert(
+                    'Ocurrió un error al intentar enviar el correo.'
+                );
+
+            }
+        )
+
+        .finally(
+            function () {
+
+
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-file-excel"></i> Enviar Formato Excel por Correo';
-            });
-        }
-    </script>
+
+
+                btn.innerHTML = `
+
+                    <i class="fas fa-file-excel"></i>
+
+                    Enviar Formato Excel por Correo
+
+                `;
+
+            }
+        );
+
+    }
+
+
+</script>
+
 </body>
+
 </html>
