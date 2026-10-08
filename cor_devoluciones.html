@@ -338,7 +338,8 @@
             const paper = document.getElementById('paperContainer');
 
             let rowsHTML = '';
-            const totalFilas = Math.max(items.length, 11);
+            // CAMBIO 1: Solo iteramos la cantidad real de items (filas ocupadas) sin rellenar espacios vacíos.
+            const totalFilas = items.length;
 
             for (let i = 0; i < totalFilas; i++) {
                 const item = items[i] || {};
@@ -355,8 +356,10 @@
                 const usuario = item.usuario || item.Usuario || '';
                 const devCant = item.devCant || item.devolucion || item.Devolucion || item.cant || '';
 
+                // CAMBIO 2: Se agregó la primera celda <td> vacía para respetar el margen de las cabeceras.
                 rowsHTML += `
                     <tr>
+                        <td style="width: 20px; background-color: #f9fafb; border: 1px solid #000;"></td>
                         <td>${tarea}</td> <!-- A -->
                         <td>${login}</td> <!-- B -->
                         <td>${tecnico}</td> <!-- C -->
@@ -392,7 +395,7 @@
                         <td colspan="5" class="bg-gray-header">SOLICITUD</td>
                         <td colspan="3" style="border: 1px solid #000;"></td>
                         <td colspan="2" class="bg-gray-header">DEVOLUCION</td>
-                        <td style="font-weight: bold; background-color: #e5e7eb;">X</td>
+                        <td style="font-weight: bold; background-color: #e5e7eb; text-align: center;">X</td>
                     </tr>
 
                     <!-- Fila 8: Metadatos de Cabecera (Etiquetas) -->
