@@ -356,10 +356,10 @@
                 const usuario = item.usuario || item.Usuario || '';
                 const devCant = item.devCant || item.devolucion || item.Devolucion || item.cant || '';
 
-                // CAMBIO 2: Se agregó la primera celda <td> vacía para respetar el margen de las cabeceras.
+                // CAMBIO 2: Se agregó la primera celda <td> vacía para respetar el margen de las cabeceras <td style="width: 20px; background-color: #f9fafb; border: 1px solid #000;"></td>.
                 rowsHTML += `
                     <tr>
-                        <td style="width: 20px; background-color: #f9fafb; border: 1px solid #000;"></td>
+                        
                         <td>${tarea}</td> <!-- A -->
                         <td>${login}</td> <!-- B -->
                         <td>${tecnico}</td> <!-- C -->
