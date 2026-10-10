@@ -16,10 +16,13 @@
         .card-kpi:hover { transform: translateY(-3px); }
         .table-container { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; }
         
+        /* Estilos optimizados para impresión / PDF en modo Horizontal (Landscape) */
         @media print {
+            @page { size: landscape; }
             .no-print { display: none !important; }
             body { background-color: white !important; }
             .table-container { box-shadow: none !important; padding: 0 !important; }
+            .container { max-width: 100% !important; width: 100% !important; }
         }
     </style>
 </head>
@@ -30,20 +33,26 @@
         <div class="row mb-4 align-items-center">
             <div class="col-md-6">
                 <h2 class="fw-bold text-dark"><i class="fa-solid fa-chart-line text-primary me-2"></i> Reporte Ejecutivo de Pedidos</h2>
-                <p class="text-muted mb-0">Sincronizado dinámicamente desde Google Apps Script.</p>
+                <p class="text-muted mb-0">Sincronizado dinámicamente desde Google Apps Script[cite: 6].</p>
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0 no-print">
                 <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm me-2"><i class="fa-solid fa-arrow-left me-1"></i> Volver al Menú</a>
-                <button onclick="window.print()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-1"></i> Generar Reporte PDF</button>
+                <button onclick="window.print()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-1"></i> Generar Reporte PDF (Horizontal)</button>
             </div>
         </div>
 
-        <!-- Filtro por Líder de Cuadrilla -->
-        <div class="row mb-4 no-print">
-            <div class="col-md-4 ms-auto">
-                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Líder de Cuadrilla (Usuario):</label>
+        <!-- Filtros de Búsqueda y Análisis (Usuario y Producto) -->
+        <div class="row mb-4 no-print g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Líder de Cuadrilla (Usuario)[cite: 6]:</label>
                 <select id="filtroUsuario" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
                     <option value="TODOS">-- Todos los Usuarios --</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Ítem / Producto[cite: 6]:</label>
+                <select id="filtroItem" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
+                    <option value="TODOS">-- Todos los Productos --</option>
                 </select>
             </div>
         </div>
@@ -97,19 +106,18 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Usuario</th>
-                                    <th>Código</th>
-                                    <th>Descripción</th>
-                                    <th>Cantidad</th>
-                                    <th>Estado</th>
-                                    <th>Solicitud</th>
-                                    <th>ID Telegram</th>
-                                    <th>Pedido</th>
+                                    <th>Fecha[cite: 6]</th>
+                                    <th>Usuario[cite: 6]</th>
+                                    <th>Código[cite: 6]</th>
+                                    <th>Descripción[cite: 6]</th>
+                                    <th>Cantidad[cite: 6]</th>
+                                    <th>Estado[cite: 6]</th>
+                                    <th>Solicitud[cite: 6]</th>
+                                    <th>Pedido[cite: 6]</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaPedidosBody">
-                                <tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Cargando datos desde Google Sheets...</td></tr>
+                                <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Cargando datos desde Google Sheets...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -120,7 +128,7 @@
 
     <!-- Script Optimizado -->
     <script>
-        // REEMPLAZA CON LA URL DE TU WEB APP DE APPS SCRIPT
+        // PEGA AQUÍ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
 
         let datosOriginales = [];
@@ -132,7 +140,7 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Evita problemas de CORS en Apps Script
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ action: "getReportePedidos" })
                 });
                 
@@ -140,36 +148,57 @@
                 
                 if (data.status === "success") {
                     datosOriginales = data.pedidos;
-                    poblarFiltroUsuarios();
+                    poblarFiltros();
                     actualizarDashboard(datosOriginales);
                 } else {
                     throw new Error(data.message || "Error desconocido del servidor");
                 }
             } catch (error) {
                 console.error("Error de conexión:", error);
-                document.getElementById("tablaPedidosBody").innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error al cargar datos: ${error.message}</td></tr>`;
+                document.getElementById("tablaPedidosBody").innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error al cargar datos: ${error.message}</td></tr>`;
             }
         }
 
-        function poblarFiltroUsuarios() {
-            const select = document.getElementById("filtroUsuario");
+        function poblarFiltros() {
+            const selectUsuario = document.getElementById("filtroUsuario");
+            const selectItem = document.getElementById("filtroItem");
+            
             const usuariosUnicos = [...new Set(datosOriginales.map(item => item.usuario))].filter(Boolean);
+            const itemsUnicos = [...new Set(datosOriginales.map(item => item.descripcion))].filter(Boolean);
             
             usuariosUnicos.forEach(user => {
                 let opt = document.createElement("option");
                 opt.value = user;
                 opt.textContent = user;
-                select.appendChild(opt);
+                selectUsuario.appendChild(opt);
+            });
+
+            itemsUnicos.forEach(item => {
+                let opt = document.createElement("option");
+                opt.value = item;
+                opt.textContent = item;
+                selectItem.appendChild(opt);
             });
         }
 
         function filtrarDatos() {
             const usuarioSeleccionado = document.getElementById("filtroUsuario").value;
-            const filtrados = usuarioSeleccionado === "TODOS" 
-                ? datosOriginales 
-                : datosOriginales.filter(item => item.usuario === usuarioSeleccionado);
+            const itemSeleccionado = document.getElementById("filtroItem").value;
+            
+            const filtrados = datosOriginales.filter(item => {
+                const coincideUsuario = (usuarioSeleccionado === "TODOS" || item.usuario === usuarioSeleccionado);
+                const coincideItem = (itemSeleccionado === "TODOS" || item.descripcion === itemSeleccionado);
+                return coincideUsuario && coincideItem;
+            });
             
             actualizarDashboard(filtrados);
+        }
+
+        // Función para extraer solo la fecha (YYYY-MM-DD o DD/MM/YYYY) sin hora
+        function formatearSoloFecha(fechaStr) {
+            if (!fechaStr) return '';
+            // Si la fecha contiene espacio (ej: "09/10/2026 7:50:26"), extrae solo la primera parte
+            return String(fechaStr).split(' ')[0];
         }
 
         function actualizarDashboard(data) {
@@ -181,12 +210,11 @@
             tbody.innerHTML = "";
             
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No hay registros disponibles para este filtro.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No hay registros disponibles para los filtros seleccionados.</td></tr>`;
                 actualizarGrafica([]);
                 return;
             }
 
-            // Uso de DocumentFragment para optimizar el rendimiento del DOM
             const fragment = document.createDocumentFragment();
             data.forEach(row => {
                 let tr = document.createElement("tr");
@@ -194,14 +222,13 @@
                 let badgeClass = estadoVal.toLowerCase() === "realizado" ? "bg-success" : "bg-warning text-dark";
                 
                 tr.innerHTML = `
-                    <td>${row.fecha || ''}</td>
+                    <td>${formatearSoloFecha(row.fecha)}</td>
                     <td class="fw-bold text-primary">${row.usuario || ''}</td>
                     <td><code>${row.codigo || ''}</code></td>
                     <td>${row.descripcion || ''}</td>
                     <td class="fw-bold">${row.cantidad || 0}</td>
                     <td><span class="badge ${badgeClass}">${estadoVal}</span></td>
                     <td>${row.solicitud || ''}</td>
-                    <td>${row.id_telegram || ''}</td>
                     <td>${row.pedido || ''}</td>
                 `;
                 fragment.appendChild(tr);
