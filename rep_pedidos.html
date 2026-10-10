@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Ejecutivo - Gestión de Pedidos</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f8f9fa; }
+        .card-kpi { border-left: 4px solid #0d6efd; transition: transform 0.2s; }
+        .card-kpi:hover { transform: translateY(-3px); }
+        .table-container { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container py-4">
+        <!-- Encabezado -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-8">
+                <h2 class="fw-bold text-dark"><i class="fa-solid fa-chart-line text-primary me-2"></i> Reporte Ejecutivo de Pedidos</h2>
+                <p class="text-muted mb-0">Monitoreo de solicitudes, consumo por cuadrilla e inventario operativo.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Líder de Cuadrilla:</label>
+                <select id="filtroUsuario" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
+                    <option value="TODOS">-- Todos los Usuarios --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tarjetas de Métricas (KPIs) -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card card-kpi shadow-sm p-3 bg-white rounded">
+                    <div class="text-muted small fw-bold">TOTAL PEDIDOS</div>
+                    <h3 id="kpiTotalPedidos" class="fw-bold text-primary mt-2 mb-0">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-kpi shadow-sm p-3 bg-white rounded" style="border-left-color: #198754;">
+                    <div class="text-muted small fw-bold">SOLICITUDES ÚNICAS</div>
+                    <h3 id="kpiTotalSolicitudes" class="fw-bold text-success mt-2 mb-0">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-kpi shadow-sm p-3 bg-white rounded" style="border-left-color: #ffc107;">
+                    <div class="text-muted small fw-bold">UNIDADES SOLICITADAS</div>
+                    <h3 id="kpiTotalUnidades" class="fw-bold text-warning mt-2 mb-0">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-kpi shadow-sm p-3 bg-white rounded" style="border-left-color: #dc3545;">
+                    <div class="text-muted small fw-bold">ESTADOS PRINCIPALES</div>
+                    <span id="kpiEstado" class="badge bg-danger mt-2 p-2 fs-6">Realizado</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica para Toma de Decisiones -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="table-container">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-boxes-stacked text-secondary me-2"></i> Ítems Más Pedidos (Toma de Decisiones)</h5>
+                    <div style="position: relative; height:300px; width:100%">
+                        <canvas id="chartItems"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Detallada -->
+        <div class="row">
+            <div class="col-12">
+                <div class="table-container">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-table text-secondary me-2"></i> Registro Detallado de Transacciones</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Código[cite: 6]</th>
+                                    <th>Descripción[cite: 6]</th>
+                                    <th>Cantidad[cite: 6]</th>
+                                    <th>Estado[cite: 6]</th>
+                                    <th>Solicitud[cite: 6]</th>
+                                    <th>Pedido[cite: 6]</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaPedidosBody">
+                                <!-- Datos inyectados por JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Datos y Lógica del Dashboard -->
+    <script>
+        // Datos simulados basados en la estructura de tu Google Sheet[cite: 6]
+        // (Aquí puedes conectar posteriormente un JSON generado desde tu script de Python o API de Google Sheets)
+        const datosOriginales = [
+            { fecha: "09/10/2026 7:50:26", usuario: "bmunoz", codigo: "10-103-240-046", descripcion: "CABLE UTP CAT 6 NEXXT (METRO)", cantidad: 305, estado: "Realizado", solicitud: 451434, id_telegram: 8301970021, pedido: 2483312 },
+            { fecha: "09/10/2026 9:15:10", usuario: "jperez", codigo: "10-104-110-012", descripcion: "CONECTOR RJ45 CAT6 (CAJA X 100)", cantidad: 5, estado: "Realizado", solicitud: 451435, id_telegram: 8301970022, pedido: 2483313 },
+            { fecha: "09/10/2026 10:20:45", usuario: "bmunoz", codigo: "10-105-300-089", descripcion: "PATCH CORD FIBRA SC/APC-SC/UPC 3M", cantidad: 15, estado: "Realizado", solicitud: 451436, id_telegram: 8301970021, pedido: 2483314 },
+            { fecha: "09/10/2026 11:05:30", usuario: "cmorales", codigo: "10-103-240-046", descripcion: "CABLE UTP CAT 6 NEXXT (METRO)", cantidad: 200, estado: "Pendiente", solicitud: 451437, id_telegram: 8301970023, pedido: 2483315 }
+        ];
+
+        let miGrafica = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            poblarFiltroUsuarios();
+            actualizarDashboard(datosOriginales);
+        });
+
+        function poblarFiltroUsuarios() {
+            const select = document.getElementById("filtroUsuario");
+            const usuariosUnicos = [...new Set(datosOriginales.map(item => item.usuario))];
+            usuariosUnicos.forEach(user => {
+                let opt = document.createElement("option");
+                opt.value = user;
+                opt.textContent = user;
+                select.appendChild(opt);
+            });
+        }
+
+        function filtrarDatos() {
+            const usuarioSeleccionado = document.getElementById("filtroUsuario").value;
+            if (usuarioSeleccionado === "TODOS") {
+                actualizarDashboard(datosOriginales);
+            } else {
+                const filtrados = datosOriginales.filter(item => item.usuario === usuarioSeleccionado);
+                actualizarDashboard(filtrados);
+            }
+        }
+
+        function actualizarDashboard(data) {
+            // Actualizar KPIs
+            document.getElementById("kpiTotalPedidos").textContent = data.length;
+            
+            const solicitudesUnicas = [...new Set(data.map(item => item.solicitud))].length;
+            document.getElementById("kpiTotalSolicitudes").textContent = solicitudesUnicas;
+            
+            const totalUnidades = data.reduce((sum, item) => sum + Number(item.cantidad), 0);
+            document.getElementById("kpiTotalUnidades").textContent = totalUnidades.toLocaleString();
+
+            // Actualizar Tabla
+            const tbody = document.getElementById("tablaPedidosBody");
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No hay registros para este filtro.</td></tr>`;
+            } else {
+                data.forEach(row => {
+                    let badgeClass = row.estado === "Realizado" ? "bg-success" : "bg-warning text-dark";
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${row.fecha}</td>
+                            <td class="fw-bold text-primary">${row.usuario}</td>
+                            <td><code>${row.codigo}</code></td>
+                            <td>${row.descripcion}</td>
+                            <td class="fw-bold">${row.cantidad}</td>
+                            <td><span class="badge ${badgeClass}">${row.estado}</span></td>
+                            <td>${row.solicitud}</td>
+                            <td>${row.pedido}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Actualizar Gráfica
+            actualizarGrafica(data);
+        }
+
+        function actualizarGrafica(data) {
+            // Agrupar cantidades por descripción del ítem
+            const conteoItems = {};
+            data.forEach(item => {
+                conteoItems[item.descripcion] = (conteoItems[item.descripcion] || 0) + Number(item.cantidad);
+            });
+
+            const labels = Object.keys(conteoItems);
+            const valores = Object.values(conteoItems);
+
+            const ctx = document.getElementById('chartItems').getContext('2d');
+            
+            if (miGrafica) {
+                miGrafica.destroy();
+            }
+
+            miGrafica = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cantidad Total Solicitada',
+                        data: valores,
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
