@@ -16,7 +16,6 @@
         .card-kpi:hover { transform: translateY(-3px); }
         .table-container { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; }
         
-        /* Estilos limpios para exportación o impresión a PDF */
         @media print {
             .no-print { display: none !important; }
             body { background-color: white !important; }
@@ -27,11 +26,11 @@
 <body>
 
     <div class="container py-4">
-        <!-- Encabezado con Botones de Navegación y PDF -->
+        <!-- Encabezado -->
         <div class="row mb-4 align-items-center">
             <div class="col-md-6">
                 <h2 class="fw-bold text-dark"><i class="fa-solid fa-chart-line text-primary me-2"></i> Reporte Ejecutivo de Pedidos</h2>
-                <p class="text-muted mb-0">Sincronizado dinámicamente desde Google Apps Script[cite: 6].</p>
+                <p class="text-muted mb-0">Sincronizado dinámicamente desde Google Apps Script.</p>
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0 no-print">
                 <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm me-2"><i class="fa-solid fa-arrow-left me-1"></i> Volver al Menú</a>
@@ -42,7 +41,7 @@
         <!-- Filtro por Líder de Cuadrilla -->
         <div class="row mb-4 no-print">
             <div class="col-md-4 ms-auto">
-                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Líder de Cuadrilla (Usuario)[cite: 6]:</label>
+                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Líder de Cuadrilla (Usuario):</label>
                 <select id="filtroUsuario" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
                     <option value="TODOS">-- Todos los Usuarios --</option>
                 </select>
@@ -77,7 +76,7 @@
             </div>
         </div>
 
-        <!-- Gráfica para Toma de Decisiones -->
+        <!-- Gráfica Interactiva -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="table-container">
@@ -98,15 +97,15 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Fecha[cite: 6]</th>
-                                    <th>Usuario[cite: 6]</th>
-                                    <th>Código[cite: 6]</th>
-                                    <th>Descripción[cite: 6]</th>
-                                    <th>Cantidad[cite: 6]</th>
-                                    <th>Estado[cite: 6]</th>
-                                    <th>Solicitud[cite: 6]</th>
-                                    <th>ID Telegram[cite: 6]</th>
-                                    <th>Pedido[cite: 6]</th>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Estado</th>
+                                    <th>Solicitud</th>
+                                    <th>ID Telegram</th>
+                                    <th>Pedido</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaPedidosBody">
@@ -119,41 +118,42 @@
         </div>
     </div>
 
-    <!-- Lógica de Conexión y Renderizado -->
+    <!-- Script Optimizado -->
     <script>
-        // PEGA AQUÍ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
+        // REEMPLAZA CON LA URL DE TU WEB APP DE APPS SCRIPT
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
 
         let datosOriginales = [];
         let miGrafica = null;
 
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarDatosReales();
-        });
+        document.addEventListener("DOMContentLoaded", cargarDatosReales);
 
         async function cargarDatosReales() {
             try {
-                const response = await fetch(APPS_SCRIPT_URL);
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Evita problemas de CORS en Apps Script
+                    body: JSON.stringify({ action: "getReportePedidos" })
+                });
+                
                 const data = await response.json();
                 
-                if (data.error) {
-                    alert("Error al cargar datos: " + data.error);
-                    return;
+                if (data.status === "success") {
+                    datosOriginales = data.pedidos;
+                    poblarFiltroUsuarios();
+                    actualizarDashboard(datosOriginales);
+                } else {
+                    throw new Error(data.message || "Error desconocido del servidor");
                 }
-
-                datosOriginales = data;
-                poblarFiltroUsuarios();
-                actualizarDashboard(datosOriginales);
             } catch (error) {
                 console.error("Error de conexión:", error);
-                document.getElementById("tablaPedidosBody").innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Error al conectar con Google Apps Script. Verifica la URL.</td></tr>`;
+                document.getElementById("tablaPedidosBody").innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error al cargar datos: ${error.message}</td></tr>`;
             }
         }
 
         function poblarFiltroUsuarios() {
             const select = document.getElementById("filtroUsuario");
-            // Extrae usuarios únicos de la columna 'Usuario'[cite: 6]
-            const usuariosUnicos = [...new Set(datosOriginales.map(item => item.Usuario || item.usuario))].filter(Boolean);
+            const usuariosUnicos = [...new Set(datosOriginales.map(item => item.usuario))].filter(Boolean);
             
             usuariosUnicos.forEach(user => {
                 let opt = document.createElement("option");
@@ -165,47 +165,48 @@
 
         function filtrarDatos() {
             const usuarioSeleccionado = document.getElementById("filtroUsuario").value;
-            if (usuarioSeleccionado === "TODOS") {
-                actualizarDashboard(datosOriginales);
-            } else {
-                const filtrados = datosOriginales.filter(item => (item.Usuario || item.usuario) === usuarioSeleccionado);
-                actualizarDashboard(filtrados);
-            }
+            const filtrados = usuarioSeleccionado === "TODOS" 
+                ? datosOriginales 
+                : datosOriginales.filter(item => item.usuario === usuarioSeleccionado);
+            
+            actualizarDashboard(filtrados);
         }
 
         function actualizarDashboard(data) {
             document.getElementById("kpiTotalPedidos").textContent = data.length;
-            
-            const solicitudesUnicas = [...new Set(data.map(item => item.Solicitud || item.solicitud))].length;
-            document.getElementById("kpiTotalSolicitudes").textContent = solicitudesUnicas;
-            
-            const totalUnidades = data.reduce((sum, item) => sum + Number(item.Cantidad || item.cantidad || 0), 0);
-            document.getElementById("kpiTotalUnidades").textContent = totalUnidades.toLocaleString();
+            document.getElementById("kpiTotalSolicitudes").textContent = new Set(data.map(item => item.solicitud)).size;
+            document.getElementById("kpiTotalUnidades").textContent = data.reduce((sum, item) => sum + Number(item.cantidad || 0), 0).toLocaleString();
 
             const tbody = document.getElementById("tablaPedidosBody");
             tbody.innerHTML = "";
             
             if (data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No hay registros disponibles para este filtro.</td></tr>`;
-            } else {
-                data.forEach(row => {
-                    let estadoVal = row.Estado || row.estado || 'N/A';
-                    let badgeClass = String(estadoVal).toLowerCase() === "realizado" ? "bg-success" : "bg-warning text-dark";
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${row.Fecha || row.fecha || ''}</td>
-                            <td class="fw-bold text-primary">${row.Usuario || row.usuario || ''}</td>
-                            <td><code>${row.Codigo || row.codigo || ''}</code></td>
-                            <td>${row.Descripcion || row.descripcion || ''}</td>
-                            <td class="fw-bold">${row.Cantidad || row.cantidad || 0}</td>
-                            <td><span class="badge ${badgeClass}">${estadoVal}</span></td>
-                            <td>${row.Solicitud || row.solicitud || ''}</td>
-                            <td>${row.ID_Telegram || row.id_telegram || ''}</td>
-                            <td>${row.Pedido || row.pedido || ''}</td>
-                        </tr>
-                    `;
-                });
+                actualizarGrafica([]);
+                return;
             }
+
+            // Uso de DocumentFragment para optimizar el rendimiento del DOM
+            const fragment = document.createDocumentFragment();
+            data.forEach(row => {
+                let tr = document.createElement("tr");
+                let estadoVal = row.estado || 'N/A';
+                let badgeClass = estadoVal.toLowerCase() === "realizado" ? "bg-success" : "bg-warning text-dark";
+                
+                tr.innerHTML = `
+                    <td>${row.fecha || ''}</td>
+                    <td class="fw-bold text-primary">${row.usuario || ''}</td>
+                    <td><code>${row.codigo || ''}</code></td>
+                    <td>${row.descripcion || ''}</td>
+                    <td class="fw-bold">${row.cantidad || 0}</td>
+                    <td><span class="badge ${badgeClass}">${estadoVal}</span></td>
+                    <td>${row.solicitud || ''}</td>
+                    <td>${row.id_telegram || ''}</td>
+                    <td>${row.pedido || ''}</td>
+                `;
+                fragment.appendChild(tr);
+            });
+            tbody.appendChild(fragment);
 
             actualizarGrafica(data);
         }
@@ -213,13 +214,9 @@
         function actualizarGrafica(data) {
             const conteoItems = {};
             data.forEach(item => {
-                let desc = item.Descripcion || item.descripcion || 'Desconocido';
-                let cant = Number(item.Cantidad || item.cantidad || 0);
-                conteoItems[desc] = (conteoItems[desc] || 0) + cant;
+                let desc = item.descripcion || 'Desconocido';
+                conteoItems[desc] = (conteoItems[desc] || 0) + Number(item.cantidad || 0);
             });
-
-            const labels = Object.keys(conteoItems);
-            const valores = Object.values(conteoItems);
 
             const ctx = document.getElementById('chartItems').getContext('2d');
             if (miGrafica) { miGrafica.destroy(); }
@@ -227,10 +224,10 @@
             miGrafica = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: Object.keys(conteoItems),
                     datasets: [{
                         label: 'Cantidad Total Solicitada',
-                        data: valores,
+                        data: Object.values(conteoItems),
                         backgroundColor: 'rgba(13, 110, 253, 0.7)',
                         borderColor: 'rgba(13, 110, 253, 1)',
                         borderWidth: 1,
