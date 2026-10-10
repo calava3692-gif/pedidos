@@ -11,113 +11,113 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #f8f9fa; }
-        .card-kpi { border-left: 4px solid #0d6efd; transition: transform 0.2s; }
-        .card-kpi:hover { transform: translateY(-3px); }
-        .table-container { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; }
+        body { background-color: #f4f6f9; font-size: 0.85rem; }
+        .card-kpi { border-left: 4px solid #0d6efd; }
+        .panel-ejecutivo { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 12px 15px; margin-bottom: 12px; }
+        .table-responsive { max-height: 210px; overflow-y: auto; }
         
-        /* Estilos optimizados para impresión / PDF en modo Horizontal (Landscape) */
+        /* Estilos optimizados para impresión / PDF horizontal en una sola hoja */
         @media print {
-            @page { size: landscape; }
+            @page { size: landscape; margin: 8mm; }
             .no-print { display: none !important; }
-            body { background-color: white !important; }
-            .table-container { box-shadow: none !important; padding: 0 !important; }
-            .container { max-width: 100% !important; width: 100% !important; }
+            body { background-color: white !important; font-size: 8pt; }
+            .panel-ejecutivo { box-shadow: none !important; border: 1px solid #dee2e6; padding: 8px !important; margin-bottom: 8px !important; }
+            .table-responsive { max-height: none !important; overflow: visible !important; }
+            .container { max-width: 100% !important; width: 100% !important; padding: 0 !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container py-4">
-        <!-- Encabezado -->
-        <div class="row mb-4 align-items-center">
-            <div class="col-md-6">
-                <h2 class="fw-bold text-dark"><i class="fa-solid fa-chart-line text-primary me-2"></i> Reporte Ejecutivo de Pedidos</h2>
-                <p class="text-muted mb-0">Sincronizado dinámicamente desde Google Apps Script[cite: 6].</p>
+    <div class="container-fluid py-3 px-4">
+        <!-- Encabezado Ejecutivo -->
+        <div class="row align-items-center mb-2">
+            <div class="col-md-7">
+                <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-line text-primary me-2"></i> Reporte Ejecutivo de Pedidos</h4>
+                <p class="text-muted small mb-0">Tablero de control y toma de decisiones sincronizado desde Google Sheets[cite: 4, 6].</p>
             </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0 no-print">
-                <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm me-2"><i class="fa-solid fa-arrow-left me-1"></i> Volver al Menú</a>
-                <button onclick="window.print()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-1"></i> Generar Reporte PDF (Horizontal)</button>
+            <div class="col-md-5 text-md-end no-print">
+                <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm me-1"><i class="fa-solid fa-arrow-left me-1"></i> Volver</a>
+                <button onclick="window.print()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-1"></i> Exportar PDF (1 Hoja)</button>
             </div>
         </div>
 
-        <!-- Filtros de Búsqueda y Análisis (Usuario y Producto) -->
-        <div class="row mb-4 no-print g-3">
+        <!-- Filtros Ejecutivos Compactos -->
+        <div class="row g-2 mb-2 no-print">
             <div class="col-md-6">
-                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Líder de Cuadrilla (Usuario)[cite: 6]:</label>
+                <label class="form-label fw-bold text-secondary small mb-0">Filtrar por Líder de Cuadrilla (Usuario)[cite: 6]:</label>
                 <select id="filtroUsuario" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
                     <option value="TODOS">-- Todos los Usuarios --</option>
                 </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-bold text-secondary small mb-1">Filtrar por Ítem / Producto[cite: 6]:</label>
+                <label class="form-label fw-bold text-secondary small mb-0">Filtrar por Ítem / Producto[cite: 6]:</label>
                 <select id="filtroItem" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
                     <option value="TODOS">-- Todos los Productos --</option>
                 </select>
             </div>
         </div>
 
-        <!-- Tarjetas de Métricas (KPIs) -->
-        <div class="row g-3 mb-4">
+        <!-- Tarjetas de Métricas (KPIs) en una sola línea -->
+        <div class="row g-2 mb-2">
             <div class="col-md-3">
-                <div class="card card-kpi shadow-sm p-3 bg-white rounded">
-                    <div class="text-muted small fw-bold">TOTAL PEDIDOS</div>
-                    <h3 id="kpiTotalPedidos" class="fw-bold text-primary mt-2 mb-0">0</h3>
+                <div class="card card-kpi shadow-sm p-2 bg-white rounded">
+                    <div class="text-muted small fw-bold" style="font-size: 0.7rem;">TOTAL PEDIDOS</div>
+                    <h4 id="kpiTotalPedidos" class="fw-bold text-primary mt-1 mb-0">0</h4>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-kpi shadow-sm p-3 bg-white rounded" style="border-left-color: #198754;">
-                    <div class="text-muted small fw-bold">SOLICITUDES ÚNICAS</div>
-                    <h3 id="kpiTotalSolicitudes" class="fw-bold text-success mt-2 mb-0">0</h3>
+                <div class="card card-kpi shadow-sm p-2 bg-white rounded" style="border-left-color: #198754;">
+                    <div class="text-muted small fw-bold" style="font-size: 0.7rem;">SOLICITUDES ÚNICAS</div>
+                    <h4 id="kpiTotalSolicitudes" class="fw-bold text-success mt-1 mb-0">0</h4>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-kpi shadow-sm p-3 bg-white rounded" style="border-left-color: #ffc107;">
-                    <div class="text-muted small fw-bold">UNIDADES SOLICITADAS</div>
-                    <h3 id="kpiTotalUnidades" class="fw-bold text-warning mt-2 mb-0">0</h3>
+                <div class="card card-kpi shadow-sm p-2 bg-white rounded" style="border-left-color: #ffc107;">
+                    <div class="text-muted small fw-bold" style="font-size: 0.7rem;">UNIDADES SOLICITADAS</div>
+                    <h4 id="kpiTotalUnidades" class="fw-bold text-warning mt-1 mb-0">0</h4>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-kpi shadow-sm p-3 bg-white rounded" style="border-left-color: #dc3545;">
-                    <div class="text-muted small fw-bold">ESTADO PRINCIPAL</div>
-                    <span id="kpiEstado" class="badge bg-danger mt-2 p-2 fs-6">Activo</span>
+                <div class="card card-kpi shadow-sm p-2 bg-white rounded" style="border-left-color: #dc3545;">
+                    <div class="text-muted small fw-bold" style="font-size: 0.7rem;">ESTADO PRINCIPAL</div>
+                    <div><span id="kpiEstado" class="badge bg-danger mt-1 px-2 py-1">Activo</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Gráfica Interactiva -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="table-container">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-boxes-stacked text-secondary me-2"></i> Ítems Más Pedidos (Toma de Decisiones)</h5>
-                    <div style="position: relative; height:300px; width:100%">
+        <!-- Bloque Central: Gráfica y Tabla distribuidas simétricamente -->
+        <div class="row g-2">
+            <!-- Gráfica de Toma de Decisiones -->
+            <div class="col-lg-5">
+                <div class="panel-ejecutivo h-100 mb-0">
+                    <h6 class="fw-bold mb-2 text-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-boxes-stacked text-primary me-1"></i> Ítems Más Pedidos (Toma de Decisiones)</h6>
+                    <div style="position: relative; height: 190px; width: 100%;">
                         <canvas id="chartItems"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Tabla Detallada -->
-        <div class="row">
-            <div class="col-12">
-                <div class="table-container">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-table text-secondary me-2"></i> Registro Detallado de Transacciones</h5>
+            <!-- Tabla de Transacciones Detalladas -->
+            <div class="col-lg-7">
+                <div class="panel-ejecutivo h-100 mb-0">
+                    <h6 class="fw-bold mb-2 text-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-table text-primary me-1"></i> Registro Detallado de Transacciones</h6>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                        <table class="table table-hover table-sm align-middle mb-0" style="font-size: 0.78rem;">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Fecha[cite: 6]</th>
-                                    <th>Usuario[cite: 6]</th>
-                                    <th>Código[cite: 6]</th>
-                                    <th>Descripción[cite: 6]</th>
-                                    <th>Cantidad[cite: 6]</th>
-                                    <th>Estado[cite: 6]</th>
-                                    <th>Solicitud[cite: 6]</th>
-                                    <th>Pedido[cite: 6]</th>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Estado</th>
+                                    <th>Solicitud</th>
+                                    <th>Pedido</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaPedidosBody">
-                                <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Cargando datos desde Google Sheets...</td></tr>
+                                <tr><td colspan="8" class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm text-primary me-1"></div> Cargando datos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -126,9 +126,8 @@
         </div>
     </div>
 
-    <!-- Script Optimizado -->
+    <!-- Script de Conexión y Control -->
     <script>
-        // PEGA AQUÍ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
 
         let datosOriginales = [];
@@ -151,11 +150,11 @@
                     poblarFiltros();
                     actualizarDashboard(datosOriginales);
                 } else {
-                    throw new Error(data.message || "Error desconocido del servidor");
+                    throw new Error(data.message || "Error del servidor");
                 }
             } catch (error) {
                 console.error("Error de conexión:", error);
-                document.getElementById("tablaPedidosBody").innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error al cargar datos: ${error.message}</td></tr>`;
+                document.getElementById("tablaPedidosBody").innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error al cargar datos.</td></tr>`;
             }
         }
 
@@ -194,10 +193,8 @@
             actualizarDashboard(filtrados);
         }
 
-        // Función para extraer solo la fecha (YYYY-MM-DD o DD/MM/YYYY) sin hora
         function formatearSoloFecha(fechaStr) {
             if (!fechaStr) return '';
-            // Si la fecha contiene espacio (ej: "09/10/2026 7:50:26"), extrae solo la primera parte
             return String(fechaStr).split(' ')[0];
         }
 
@@ -210,7 +207,7 @@
             tbody.innerHTML = "";
             
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No hay registros disponibles para los filtros seleccionados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">Sin registros para los filtros seleccionados.</td></tr>`;
                 actualizarGrafica([]);
                 return;
             }
@@ -225,9 +222,9 @@
                     <td>${formatearSoloFecha(row.fecha)}</td>
                     <td class="fw-bold text-primary">${row.usuario || ''}</td>
                     <td><code>${row.codigo || ''}</code></td>
-                    <td>${row.descripcion || ''}</td>
+                    <td class="text-truncate" style="max-width: 150px;" title="${row.descripcion || ''}">${row.descripcion || ''}</td>
                     <td class="fw-bold">${row.cantidad || 0}</td>
-                    <td><span class="badge ${badgeClass}">${estadoVal}</span></td>
+                    <td><span class="badge ${badgeClass}" style="font-size: 0.65rem;">${estadoVal}</span></td>
                     <td>${row.solicitud || ''}</td>
                     <td>${row.pedido || ''}</td>
                 `;
@@ -253,19 +250,22 @@
                 data: {
                     labels: Object.keys(conteoItems),
                     datasets: [{
-                        label: 'Cantidad Total Solicitada',
+                        label: 'Cantidad',
                         data: Object.values(conteoItems),
                         backgroundColor: 'rgba(13, 110, 253, 0.7)',
                         borderColor: 'rgba(13, 110, 253, 1)',
                         borderWidth: 1,
-                        borderRadius: 4
+                        borderRadius: 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    scales: { 
+                        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+                        x: { ticks: { font: { size: 9 }, maxRotation: 25 } }
+                    }
                 }
             });
         }
