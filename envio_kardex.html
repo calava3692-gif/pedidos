@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+    // Validar sesión iniciada
+    (function comprobarSesion() {
+        const usuario = localStorage.getItem('usuarioLogueado');
+        if (!usuario) {
+            window.location.href = 'index.html';
+        }
+    })();
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Kardex de Fibra y Cable</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d2a;
+            --card-inner-bg: #0f1623;
+            --input-bg: #0b101b;
+            --border-color: #232f45;
+            --text-main: #e2e8f0;
+            --text-muted: #8a99ad;
+            --btn-primary: #1d4ed8;
+            --btn-primary-hover: #2563eb;
+            --btn-success: #15803d;
+            --btn-success-hover: #16a34a;
+            --btn-secondary: #243246;
+            --accent-blue: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 18px 18px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Panel de Control */
+        .control-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .control-header h2 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            background-color: var(--card-inner-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.flex-grow {
+            flex-grow: 1;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-send {
+            background-color: var(--btn-primary);
+            color: white;
+        }
+
+        .btn-send:hover {
+            background-color: var(--btn-primary-hover);
+        }
+
+        .btn-back {
+            background-color: var(--btn-secondary);
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        /* Estilos del Documento Oficial */
+        .paper-wrapper {
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            overflow-x: auto;
+        }
+
+        .doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            margin-top: 10px;
+        }
+
+        .doc-table td, .doc-table th {
+            border: 1px solid #000000;
+            padding: 4px 6px;
+            text-align: center;
+            height: 24px;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .bg-gray-header {
+            background-color: #d9d9d9;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Panel superior de controles -->
+        <div class="control-card">
+            <div class="control-header">
+                <h2><i class="fas fa-boxes-stacked" style="color: var(--accent-blue);"></i> Control de Kardex (Fibra y Cable)</h2>
+                <a href="dashboard.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Volver al Menú</a>
+            </div>
+
+            <div class="email-form">
+                <!-- Combobox de Kardex Disponibles -->
+                <div class="form-group" style="min-width: 250px;">
+                    <label for="cmbKardex">KARDEX DISPONIBLE:</label>
+                    <select id="cmbKardex" class="form-control" onchange="cargarKardexSeleccionado()">
+                        <option value="">Cargando kardex...</option>
+                    </select>
+                </div>
+
+                <!-- Combobox CABLE / FIBRA -->
+                <div class="form-group" style="min-width: 160px;">
+                    <label for="cmbTipoMaterial">TIPO:</label>
+                    <select id="cmbTipoMaterial" class="form-control">
+                        <option value="FIBRA">FIBRA</option>
+                        <option value="CABLE">CABLE</option>
+                    </select>
+                </div>
+
+                <!-- Botón Crear Tarea -->
+                <button class="btn btn-send" id="btnCrearTarea" onclick="crearTareaKardex()">
+                    <i class="fas fa-plus-circle"></i> Crear / Agregar Tarea
+                </button>
+            </div>
+        </div>
+
+        <!-- Documento de Visualización (Formato Kardex) -->
+        <div class="paper-wrapper" id="paperContainer">
+            <div class="status-msg"><i class="fas fa-spinner fa-spin"></i> Cargando vista previa del Kardex...</div>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
+        const usuarioLogueado = localStorage.getItem('usuarioLogueado') || 'calava';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarListaKardex();
+        });
+
+        function cargarListaKardex() {
+            const cmb = document.getElementById('cmbKardex');
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getListaKardex', usuario: usuarioLogueado }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.kardexList && data.kardexList.length > 0) {
+                    cmb.innerHTML = '';
+                    data.kardexList.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item;
+                        option.textContent = item;
+                        cmb.appendChild(option);
+                    });
+                    cargarKardexSeleccionado();
+                } else {
+                    cmb.innerHTML = `<option value="">No hay Kardex activos</option>`;
+                    document.getElementById('paperContainer').innerHTML = `<div class="status-msg">No se encontraron hojas de Kardex activas para este usuario.</div>`;
+                }
+            })
+            .catch(err => {
+                console.error('Error al cargar lista de kardex:', err);
+                cmb.innerHTML = `<option value="">Error de conexión</option>`;
+            });
+        }
+
+        function cargarKardexSeleccionado() {
+            const paper = document.getElementById('paperContainer');
+            const kardexSel = document.getElementById('cmbKardex').value;
+
+            if (!kardexSel) return;
+
+            paper.innerHTML = '<div class="status-msg"><i class="fas fa-spinner fa-spin"></i> Cargando datos del Kardex...</div>';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getDatosKardex',
+                    nombreHoja: kardexSel,
+                    usuarioLogueado: usuarioLogueado
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    renderizarKardex(data.items);
+                } else {
+                    paper.innerHTML = `<div class="status-msg" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> ${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                paper.innerHTML = `<div class="status-msg" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> Error al conectar con el servidor.</div>`;
+            });
+        }
+
+        function renderizarKardex(items) {
+            const paper = document.getElementById('paperContainer');
+            const itemsList = items || [];
+            const totalFilas = Math.max(itemsList.length, 12);
+            let rowsHTML = '';
+
+            for (let i = 0; i < totalFilas; i++) {
+                const item = itemsList[i] || {};
+                
+                rowsHTML += `
+                    <tr>
+                        <td>${item.codigo_bobina || item[0] || ''}</td>
+                        <td>${item.metraje_bobina || item[1] || ''}</td>
+                        <td>${item.fecha || item[2] || ''}</td>
+                        <td>${item.coordinador || item[3] || ''}</td>
+                        <td>${item.tecnico || item[4] || ''}</td>
+                        <td>${item.tipo_actividad || item[5] || ''}</td>
+                        <td>${item.metraje_entregado || item[6] || ''}</td>
+                        <td>${item.tarea || item[7] || ''}</td>
+                        <td>${item.login || item[8] || ''}</td>
+                        <td>${item.metraje_utilizado || item[9] || ''}</td>
+                        <td>${item.sobrante || item[10] || ''}</td>
+                    </tr>
+                `;
+            }
+
+            paper.innerHTML = `
+                <div class="logo-title-container">
+                    <div style="width: 180px;">
+                        <svg width="170" height="40" viewBox="0 0 170 40">
+                            <ellipse cx="60" cy="20" rx="55" ry="16" fill="none" stroke="#003366" stroke-width="2.5" transform="rotate(-8 60 20)" />
+                            <ellipse cx="60" cy="20" rx="45" ry="10" fill="none" stroke="#38bdf8" stroke-width="1.8" transform="rotate(-8 60 20)" />
+                            <text x="20" y="25" font-family="Arial, sans-serif" font-weight="900" font-style="italic" font-size="20" fill="#003366">telconet</text>
+                            <text x="28" y="34" font-family="Arial, sans-serif" font-style="italic" font-size="7.5" fill="#555555">la fibra del Ecuador!</text>
+                        </svg>
+                    </div>
+                    <div style="text-align: center; flex-grow: 1;">
+                        <div style="font-size: 18px; font-weight: bold; font-family: Arial, sans-serif;">Formato Control de Fibra / Cable (Kardex)</div>
+                    </div>
+                    <div style="width: 180px;"></div>
+                </div>
+
+                <table class="doc-table">
+                    <tr class="bg-gray-header">
+                        <td>Código de bobina</td>
+                        <td>Metraje bobina</td>
+                        <td>Fecha</td>
+                        <td>Coordinador</td>
+                        <td>Técnico</td>
+                        <td>Tipo de actividad</td>
+                        <td>Metraje entregado</td>
+                        <td>#Tarea</td>
+                        <td>Login</td>
+                        <td>Metraje utilizado</td>
+                        <td>Sobrante</td>
+                    </tr>
+                    ${rowsHTML}
+                </table>
+            `;
+        }
+
+        function crearTareaKardex() {
+            const kardexSel = document.getElementById('cmbKardex').value;
+            const tipoMaterial = document.getElementById('cmbTipoMaterial').value;
+            
+            if (!kardexSel) {
+                alert('Por favor selecciona o crea un Kardex primero.');
+                return;
+            }
+
+            alert(`Redirigiendo para crear tarea de ${tipoMaterial} en el Kardex: ${kardexSel}`);
+            // Aquí puedes integrar la redirección o lógica del modal de creación de tarea
+        }
+    </script>
+</body>
+</html>
