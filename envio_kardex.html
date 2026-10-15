@@ -368,14 +368,42 @@
         function crearTareaKardex() {
             const kardexSel = document.getElementById('cmbKardex').value;
             const tipoMaterial = document.getElementById('cmbTipoMaterial').value;
+            const btn = document.getElementById('btnCrearTarea');
             
             if (!kardexSel) {
-                alert('Por favor selecciona o crea un Kardex primero.');
+                alert('Por favor selecciona un Kardex primero.');
                 return;
             }
 
-            alert(`Redirigiendo para crear tarea de ${tipoMaterial} en el Kardex: ${kardexSel}`);
-            // Aquí puedes integrar la redirección o lógica del modal de creación de tarea
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando tarea...';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'crearTareaKardex',
+                    nombreHoja: kardexSel,
+                    tipoMaterial: tipoMaterial,
+                    usuarioLogueado: usuarioLogueado
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Ocurrió un error de conexión al registrar la tarea.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus-circle"></i> Crear / Agregar Tarea';
+            });
         }
     </script>
 </body>
