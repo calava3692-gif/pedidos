@@ -15,7 +15,6 @@
         .card-kpi { border-left: 4px solid #0d6efd; }
         .panel-ejecutivo { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 12px 15px; margin-bottom: 12px; }
         .table-responsive { max-height: 230px; overflow-y: auto; }
-        .ia-comment-box { background: #e8f4fd; border-left: 4px solid #0dcaf0; border-radius: 6px; padding: 12px 15px; margin-top: 15px; }
         
         /* Estilos optimizados para impresión / PDF horizontal en una sola hoja */
         @media print {
@@ -134,7 +133,7 @@
             </div>
         </div>
 
-        <!-- Bloque Central: Gráfica Top 5 y Tabla -->
+        <!-- Bloque Central: Gráfica Top 5 y Tabla Detallada -->
         <div class="row g-2">
             <!-- Gráfica de Top 5 Ítems Más Pedidos -->
             <div class="col-lg-5">
@@ -173,17 +172,14 @@
             </div>
         </div>
 
-        <!-- Comentario de Análisis con IA al final del documento -->
+        <!-- Nueva Gráfica Lineal: Solicitudes por Técnico -->
         <div class="row g-2 mt-1">
             <div class="col-12">
-                <div class="ia-comment-box shadow-sm">
-                    <div class="d-flex align-items-center mb-1">
-                        <i class="fa-solid fa-robot text-info me-2 fs-5"></i>
-                        <h6 class="fw-bold text-dark mb-0">Análisis Inteligente de Datos (Asistente IA)</h6>
+                <div class="panel-ejecutivo mb-0">
+                    <h6 class="fw-bold mb-2 text-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-chart-line text-success me-1"></i> Cantidad de Solicitudes por Técnico / Usuario</h6>
+                    <div style="position: relative; height: 210px; width: 100%;">
+                        <canvas id="chartTecnicos"></canvas>
                     </div>
-                    <p id="textoAnalisisIA" class="text-secondary small mb-0 fst-italic">
-                        Generando análisis automatizado con base en los filtros y transacciones seleccionadas...
-                    </p>
                 </div>
             </div>
         </div>
@@ -195,14 +191,8 @@
 
         let datosOriginales = [];
         let miGrafica = null;
+        let miGraficaTecnicos = null;
 
-        // Mapeo oficial de categorías según la pestaña "Tipo" (Catálogo Base)
-        // 1: Material (Material recurrente)
-        // 2: Equipo (Equipos opticos)
-        // 3: Fibra Bobina (Fibra bobina)
-        // 4: Fibra cantidad (Fibra Preconectorizada por cantidad)
-        // 5: Fibra unidad (Fibra Preconectorizada por unidad)
-        // 6: Cable (Cables Electrico/UTP)
         function determinarCategoria(codigo, descripcion) {
             let text = (String(codigo) + " " + String(descripcion)).toUpperCase();
             if (text.includes("BOBINA")) return "Fibra Bobina";
@@ -210,7 +200,7 @@
             if (text.includes("UNIDAD") || text.includes("CONECTOR") || text.includes("SPLITTER")) return "Fibra unidad";
             if (text.includes("CABLE") || text.includes("UTP") || text.includes("ELECTRICO")) return "Cable";
             if (text.includes("ONU") || text.includes("ROUTER") || text.includes("EQUIPO") || text.includes("ONT")) return "Equipo";
-            return "Material"; // Categoría por defecto (Material recurrente)
+            return "Material";
         }
 
         document.addEventListener("DOMContentLoaded", cargarDatosReales);
@@ -353,7 +343,7 @@
             if (data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">Sin registros para los filtros seleccionados.</td></tr>`;
                 actualizarGraficaTop5([]);
-                actualizarAnalisisIA([]);
+                actualizarGraficaTecnicos([]);
                 return;
             }
 
@@ -378,7 +368,7 @@
             tbody.appendChild(fragment);
 
             actualizarGraficaTop5(data);
-            actualizarAnalisisIA(data);
+            actualizarGraficaTecnicos(data);
         }
 
         function actualizarGraficaTop5(data) {
@@ -423,32 +413,47 @@
             });
         }
 
-        function actualizarAnalisisIA(data) {
-            if (data.length === 0) {
-                document.getElementById("textoAnalisisIA").textContent = "No hay datos disponibles para generar un análisis inteligente con los filtros actuales.";
-                return;
-            }
-
-            const totalLineas = data.length;
-            const totalUnidades = data.reduce((sum, item) => sum + Number(item.cantidad || 0), 0);
-            const realizados = data.filter(i => String(i.estado).toLowerCase() === "realizado").length;
-            const pendientes = totalLineas - realizados;
-            const porcentajeRealizados = ((realizados / totalLineas) * 100).toFixed(1);
-
-            // Item más solicitado
-            const conteo = {};
-            data.forEach(i => {
-                let desc = i.descripcion || 'General';
-                conteo[desc] = (conteo[desc] || 0) + Number(i.cantidad || 0);
+        function actualizarGraficaTecnicos(data) {
+            const solicitudesPorTecnico = {};
+            data.forEach(item => {
+                let user = item.usuario || 'Desconocido';
+                if (!solicitudesPorTecnico[user]) {
+                    solicitudesPorTecnico[user] = new Set();
+                }
+                solicitudesPorTecnico[user].add(item.solicitud);
             });
-            let itemTop = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0];
 
-            let comentario = `Análisis general: Se registran ${totalLineas} líneas de pedidos que suman un total de ${totalUnidades.toLocaleString()} unidades solicitadas. El índice de cumplimiento se encuentra en un ${porcentajeRealizados}% (${realizados} completados frente a ${pendientes} pendientes/otros). `;
-            if (itemTop) {
-                comentario += `El producto con mayor demanda en este filtro es "${itemTop[0]}" con ${itemTop[1]} unidades. Se recomienda asegurar stock preventivo para mantener la operatividad de las cuadrillas.`;
-            }
+            const labels = Object.keys(solicitudesPorTecnico).sort();
+            const valores = labels.map(u => solicitudesPorTecnico[u].size);
 
-            document.getElementById("textoAnalisisIA").textContent = comentario;
+            const ctx = document.getElementById('chartTecnicos').getContext('2d');
+            if (miGraficaTecnicos) { miGraficaTecnicos.destroy(); }
+
+            miGraficaTecnicos = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Sin datos'],
+                    datasets: [{
+                        label: 'Cantidad de Solicitudes',
+                        data: valores,
+                        backgroundColor: 'rgba(25, 135, 84, 0.15)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(25, 135, 84, 1)',
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+                        x: { ticks: { font: { size: 10 }, maxRotation: 25 } }
+                    }
+                }
+            });
         }
     </script>
 </body>
