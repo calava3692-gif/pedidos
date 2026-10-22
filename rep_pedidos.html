@@ -15,6 +15,7 @@
         .card-kpi { border-left: 4px solid #0d6efd; }
         .panel-ejecutivo { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 12px 15px; margin-bottom: 12px; }
         .table-responsive { max-height: 230px; overflow-y: auto; }
+        .ia-comment-box { background: #e8f4fd; border-left: 4px solid #0dcaf0; border-radius: 6px; padding: 12px 15px; margin-top: 15px; }
         
         /* Estilos optimizados para impresión / PDF horizontal en una sola hoja */
         @media print {
@@ -52,7 +53,7 @@
                     <div class="input-group input-group-sm">
                         <input type="text" id="inputFiltroPedido" class="form-control" placeholder="Ej. 166723648" onkeyup="if(event.key === 'Enter') filtrarDatos();">
                         <button class="btn btn-outline-primary" type="button" onclick="filtrarDatos()"><i class="fa-solid fa-search"></i></button>
-                        <button class="btn btn-outline-secondary" type="button" onclick="limpiarFiltroPedido()" title="Limpiar"><i class="fa-solid xmark">×</i></button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="limpiarFiltroPedido()" title="Limpiar"><i class="fa-solid">×</i></button>
                     </div>
                 </div>
 
@@ -72,9 +73,9 @@
                     </select>
                 </div>
 
-                <!-- 4. Filtro por Categoría -->
+                <!-- 4. Filtro por Categoría (Pestaña Tipo) -->
                 <div class="col-md-3">
-                    <label class="form-label fw-bold text-secondary small mb-1">Categoría:</label>
+                    <label class="form-label fw-bold text-secondary small mb-1">Categoría (Tipo):</label>
                     <select id="filtroCategoria" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
                         <option value="TODOS">-- Todas las Categorías --</option>
                     </select>
@@ -109,7 +110,7 @@
         <div class="row g-2 mb-2">
             <div class="col-md-3">
                 <div class="card card-kpi shadow-sm p-2 bg-white rounded">
-                    <div class="text-muted small fw-bold" style="font-size: 0.7rem;">TOTAL PEDIDOS</div>
+                    <div class="text-muted small fw-bold" style="font-size: 0.7rem;">TOTAL LÍNEAS</div>
                     <h4 id="kpiTotalPedidos" class="fw-bold text-primary mt-1 mb-0">0</h4>
                 </div>
             </div>
@@ -171,6 +172,21 @@
                 </div>
             </div>
         </div>
+
+        <!-- Comentario de Análisis con IA al final del documento -->
+        <div class="row g-2 mt-1">
+            <div class="col-12">
+                <div class="ia-comment-box shadow-sm">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fa-solid fa-robot text-info me-2 fs-5"></i>
+                        <h6 class="fw-bold text-dark mb-0">Análisis Inteligente de Datos (Asistente IA)</h6>
+                    </div>
+                    <p id="textoAnalisisIA" class="text-secondary small mb-0 fst-italic">
+                        Generando análisis automatizado con base en los filtros y transacciones seleccionadas...
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Script de Conexión y Control -->
@@ -179,6 +195,23 @@
 
         let datosOriginales = [];
         let miGrafica = null;
+
+        // Mapeo oficial de categorías según la pestaña "Tipo" (Catálogo Base)
+        // 1: Material (Material recurrente)
+        // 2: Equipo (Equipos opticos)
+        // 3: Fibra Bobina (Fibra bobina)
+        // 4: Fibra cantidad (Fibra Preconectorizada por cantidad)
+        // 5: Fibra unidad (Fibra Preconectorizada por unidad)
+        // 6: Cable (Cables Electrico/UTP)
+        function determinarCategoria(codigo, descripcion) {
+            let text = (String(codigo) + " " + String(descripcion)).toUpperCase();
+            if (text.includes("BOBINA")) return "Fibra Bobina";
+            if (text.includes("PRECONECTORIZADA") || text.includes("DROP")) return "Fibra cantidad";
+            if (text.includes("UNIDAD") || text.includes("CONECTOR") || text.includes("SPLITTER")) return "Fibra unidad";
+            if (text.includes("CABLE") || text.includes("UTP") || text.includes("ELECTRICO")) return "Cable";
+            if (text.includes("ONU") || text.includes("ROUTER") || text.includes("EQUIPO") || text.includes("ONT")) return "Equipo";
+            return "Material"; // Categoría por defecto (Material recurrente)
+        }
 
         document.addEventListener("DOMContentLoaded", cargarDatosReales);
 
@@ -205,23 +238,12 @@
             }
         }
 
-        function extraerCategoria(codigo, descripcion) {
-            // Lógica para determinar la categoría basada en el código o descripción
-            let texto = (codigo + " " + descripcion).toUpperCase();
-            if (texto.includes("FIBRA") || texto.includes("DROP")) return "Fibra Óptica";
-            if (texto.includes("CABLE") || texto.includes("UTP")) return "Cableado";
-            if (texto.includes("CONECTOR") || texto.includes("SPLITTER") || texto.includes("CAJA")) return "Accesorios / Pasivos";
-            if (texto.includes("ONUS") || texto.includes("ROUTER") || texto.includes("EQUIPO")) return "Equipos / CPE";
-            return "General / Varios";
-        }
-
         function poblarFiltros() {
             const selectUsuario = document.getElementById("filtroUsuario");
             const selectItem = document.getElementById("filtroItem");
             const selectEstado = document.getElementById("filtroEstado");
             const selectCategoria = document.getElementById("filtroCategoria");
             
-            // Limpiar selects previos excepto la primera opción
             selectUsuario.innerHTML = '<option value="TODOS">-- Todos los Usuarios --</option>';
             selectItem.innerHTML = '<option value="TODOS">-- Todos los Productos --</option>';
             selectEstado.innerHTML = '<option value="TODOS">-- Todos los Estados --</option>';
@@ -230,7 +252,7 @@
             const usuariosUnicos = [...new Set(datosOriginales.map(item => item.usuario))].filter(Boolean).sort();
             const itemsUnicos = [...new Set(datosOriginales.map(item => item.descripcion))].filter(Boolean).sort();
             const estadosUnicos = [...new Set(datosOriginales.map(item => item.estado))].filter(Boolean).sort();
-            const categoriasUnicas = [...new Set(datosOriginales.map(item => extraerCategoria(item.codigo, item.descripcion)))].filter(Boolean).sort();
+            const categoriasUnicas = ["Material", "Equipo", "Fibra Bobina", "Fibra cantidad", "Fibra unidad", "Cable"];
             
             usuariosUnicos.forEach(user => {
                 let opt = document.createElement("option");
@@ -275,13 +297,13 @@
                 const coincideUsuario = (usuarioSeleccionado === "TODOS" || item.usuario === usuarioSeleccionado);
                 const coincideItem = (itemSeleccionado === "TODOS" || item.descripcion === itemSeleccionado);
                 const coincideEstado = (estadoSeleccionado === "TODOS" || item.estado === estadoSeleccionado);
-                const categoriaItem = extraerCategoria(item.codigo, item.descripcion);
+                
+                const categoriaItem = determinarCategoria(item.codigo, item.descripcion);
                 const coincideCategoria = (categoriaSeleccionada === "TODOS" || categoriaItem === categoriaSeleccionada);
                 
-                // Validación de Rango de Fechas
                 let coincideFecha = true;
                 if (fechaDesde || fechaHasta) {
-                    const fechaItemStr = formatearSoloFecha(item.fecha); // YYYY-MM-DD
+                    const fechaItemStr = formatearSoloFecha(item.fecha);
                     if (fechaItemStr) {
                         if (fechaDesde && fechaItemStr < fechaDesde) coincideFecha = false;
                         if (fechaHasta && fechaItemStr > fechaHasta) coincideFecha = false;
@@ -312,7 +334,6 @@
 
         function formatearSoloFecha(fechaStr) {
             if (!fechaStr) return '';
-            // Si la fecha viene como DD/MM/YYYY o YYYY-MM-DD
             let partes = String(fechaStr).split(' ')[0];
             if (partes.includes('/')) {
                 let p = partes.split('/');
@@ -332,6 +353,7 @@
             if (data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">Sin registros para los filtros seleccionados.</td></tr>`;
                 actualizarGraficaTop5([]);
+                actualizarAnalisisIA([]);
                 return;
             }
 
@@ -356,6 +378,7 @@
             tbody.appendChild(fragment);
 
             actualizarGraficaTop5(data);
+            actualizarAnalisisIA(data);
         }
 
         function actualizarGraficaTop5(data) {
@@ -365,7 +388,6 @@
                 conteoItems[desc] = (conteoItems[desc] || 0) + Number(item.cantidad || 0);
             });
 
-            // Ordenar y obtener el Top 5
             const top5Entries = Object.entries(conteoItems)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
@@ -399,6 +421,34 @@
                     }
                 }
             });
+        }
+
+        function actualizarAnalisisIA(data) {
+            if (data.length === 0) {
+                document.getElementById("textoAnalisisIA").textContent = "No hay datos disponibles para generar un análisis inteligente con los filtros actuales.";
+                return;
+            }
+
+            const totalLineas = data.length;
+            const totalUnidades = data.reduce((sum, item) => sum + Number(item.cantidad || 0), 0);
+            const realizados = data.filter(i => String(i.estado).toLowerCase() === "realizado").length;
+            const pendientes = totalLineas - realizados;
+            const porcentajeRealizados = ((realizados / totalLineas) * 100).toFixed(1);
+
+            // Item más solicitado
+            const conteo = {};
+            data.forEach(i => {
+                let desc = i.descripcion || 'General';
+                conteo[desc] = (conteo[desc] || 0) + Number(i.cantidad || 0);
+            });
+            let itemTop = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0];
+
+            let comentario = `Análisis general: Se registran ${totalLineas} líneas de pedidos que suman un total de ${totalUnidades.toLocaleString()} unidades solicitadas. El índice de cumplimiento se encuentra en un ${porcentajeRealizados}% (${realizados} completados frente a ${pendientes} pendientes/otros). `;
+            if (itemTop) {
+                comentario += `El producto con mayor demanda en este filtro es "${itemTop[0]}" con ${itemTop[1]} unidades. Se recomienda asegurar stock preventivo para mantener la operatividad de las cuadrillas.`;
+            }
+
+            document.getElementById("textoAnalisisIA").textContent = comentario;
         }
     </script>
 </body>
