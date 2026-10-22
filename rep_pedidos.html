@@ -14,7 +14,7 @@
         body { background-color: #f4f6f9; font-size: 0.85rem; }
         .card-kpi { border-left: 4px solid #0d6efd; }
         .panel-ejecutivo { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 12px 15px; margin-bottom: 12px; }
-        .table-responsive { max-height: 210px; overflow-y: auto; }
+        .table-responsive { max-height: 230px; overflow-y: auto; }
         
         /* Estilos optimizados para impresión / PDF horizontal en una sola hoja */
         @media print {
@@ -32,29 +32,76 @@
     <div class="container-fluid py-3 px-4">
         <!-- Encabezado Ejecutivo -->
         <div class="row align-items-center mb-2">
-            <div class="col-md-7">
+            <div class="col-md-5">
                 <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-line text-primary me-2"></i> Reporte Ejecutivo de Pedidos</h4>
                 <p class="text-muted small mb-0">Data sincronizada desde Google Sheets.</p>
             </div>
-            <div class="col-md-5 text-md-end no-print">
+            <div class="col-md-7 text-md-end no-print">
+                <button onclick="cargarDatosReales()" class="btn btn-outline-primary btn-sm me-1"><i class="fa-solid fa-rotate me-1"></i> Refrescar</button>
                 <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm me-1"><i class="fa-solid fa-arrow-left me-1"></i> Volver</a>
                 <button onclick="window.print()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-1"></i> Exportar PDF</button>
             </div>
         </div>
 
-        <!-- Filtros Ejecutivos Compactos -->
-        <div class="row g-2 mb-2 no-print">
-            <div class="col-md-6">
-                <label class="form-label fw-bold text-secondary small mb-0">Filtrar por Líder de Cuadrilla (Usuario):</label>
-                <select id="filtroUsuario" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
-                    <option value="TODOS">-- Todos los Usuarios --</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-bold text-secondary small mb-0">Filtrar por Ítem / Producto</label>
-                <select id="filtroItem" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
-                    <option value="TODOS">-- Todos los Productos --</option>
-                </select>
+        <!-- Filtros Ejecutivos Avanzados -->
+        <div class="panel-ejecutivo no-print mb-2 py-2">
+            <div class="row g-2 align-items-end">
+                <!-- 1. Búsqueda por N° de Pedido -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-secondary small mb-1">N° de Pedido:</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="inputFiltroPedido" class="form-control" placeholder="Ej. 166723648" onkeyup="if(event.key === 'Enter') filtrarDatos();">
+                        <button class="btn btn-outline-primary" type="button" onclick="filtrarDatos()"><i class="fa-solid fa-search"></i></button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="limpiarFiltroPedido()" title="Limpiar"><i class="fa-solid xmark">×</i></button>
+                    </div>
+                </div>
+
+                <!-- 2. Filtro por Usuario / Técnico -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-secondary small mb-1">Usuario / Técnico:</label>
+                    <select id="filtroUsuario" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
+                        <option value="TODOS">-- Todos los Usuarios --</option>
+                    </select>
+                </div>
+
+                <!-- 3. Filtro por Estado de Solicitud -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-secondary small mb-1">Estado Solicitud:</label>
+                    <select id="filtroEstado" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
+                        <option value="TODOS">-- Todos los Estados --</option>
+                    </select>
+                </div>
+
+                <!-- 4. Filtro por Categoría -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-secondary small mb-1">Categoría:</label>
+                    <select id="filtroCategoria" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
+                        <option value="TODOS">-- Todas las Categorías --</option>
+                    </select>
+                </div>
+
+                <!-- 5. Filtro por Producto / Ítem -->
+                <div class="col-md-4">
+                    <label class="form-label fw-bold text-secondary small mb-1">Producto / Ítem:</label>
+                    <select id="filtroItem" class="form-select form-select-sm shadow-sm" onchange="filtrarDatos()">
+                        <option value="TODOS">-- Todos los Productos --</option>
+                    </select>
+                </div>
+
+                <!-- 6. Filtro por Fecha (Desde - Hasta) -->
+                <div class="col-md-5">
+                    <label class="form-label fw-bold text-secondary small mb-1">Rango de Fecha (Desde / Hasta):</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="filtroFechaDesde" class="form-control" onchange="filtrarDatos()">
+                        <span class="input-group-text">hasta</span>
+                        <input type="date" id="filtroFechaHasta" class="form-control" onchange="filtrarDatos()">
+                    </div>
+                </div>
+
+                <!-- Botón Restablecer Filtros -->
+                <div class="col-md-3 text-md-end">
+                    <button class="btn btn-sm btn-light border w-100 text-secondary fw-bold" onclick="resetFiltros()"><i class="fa-solid fa-filter-circle-xmark me-1"></i> Limpiar Filtros</button>
+                </div>
             </div>
         </div>
 
@@ -86,13 +133,13 @@
             </div>
         </div>
 
-        <!-- Bloque Central: Gráfica y Tabla distribuidas simétricamente -->
+        <!-- Bloque Central: Gráfica Top 5 y Tabla -->
         <div class="row g-2">
-            <!-- Gráfica de Toma de Decisiones -->
+            <!-- Gráfica de Top 5 Ítems Más Pedidos -->
             <div class="col-lg-5">
                 <div class="panel-ejecutivo h-100 mb-0">
-                    <h6 class="fw-bold mb-2 text-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-boxes-stacked text-primary me-1"></i> Ítems Más Pedidos (Toma de Decisiones)</h6>
-                    <div style="position: relative; height: 190px; width: 100%;">
+                    <h6 class="fw-bold mb-2 text-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-boxes-stacked text-primary me-1"></i> Top 5 Ítems Más Pedidos</h6>
+                    <div style="position: relative; height: 195px; width: 100%;">
                         <canvas id="chartItems"></canvas>
                     </div>
                 </div>
@@ -146,7 +193,7 @@
                 const data = await response.json();
                 
                 if (data.status === "success") {
-                    datosOriginales = data.pedidos;
+                    datosOriginales = data.pedidos || [];
                     poblarFiltros();
                     actualizarDashboard(datosOriginales);
                 } else {
@@ -158,12 +205,32 @@
             }
         }
 
+        function extraerCategoria(codigo, descripcion) {
+            // Lógica para determinar la categoría basada en el código o descripción
+            let texto = (codigo + " " + descripcion).toUpperCase();
+            if (texto.includes("FIBRA") || texto.includes("DROP")) return "Fibra Óptica";
+            if (texto.includes("CABLE") || texto.includes("UTP")) return "Cableado";
+            if (texto.includes("CONECTOR") || texto.includes("SPLITTER") || texto.includes("CAJA")) return "Accesorios / Pasivos";
+            if (texto.includes("ONUS") || texto.includes("ROUTER") || texto.includes("EQUIPO")) return "Equipos / CPE";
+            return "General / Varios";
+        }
+
         function poblarFiltros() {
             const selectUsuario = document.getElementById("filtroUsuario");
             const selectItem = document.getElementById("filtroItem");
+            const selectEstado = document.getElementById("filtroEstado");
+            const selectCategoria = document.getElementById("filtroCategoria");
             
-            const usuariosUnicos = [...new Set(datosOriginales.map(item => item.usuario))].filter(Boolean);
-            const itemsUnicos = [...new Set(datosOriginales.map(item => item.descripcion))].filter(Boolean);
+            // Limpiar selects previos excepto la primera opción
+            selectUsuario.innerHTML = '<option value="TODOS">-- Todos los Usuarios --</option>';
+            selectItem.innerHTML = '<option value="TODOS">-- Todos los Productos --</option>';
+            selectEstado.innerHTML = '<option value="TODOS">-- Todos los Estados --</option>';
+            selectCategoria.innerHTML = '<option value="TODOS">-- Todas las Categorías --</option>';
+
+            const usuariosUnicos = [...new Set(datosOriginales.map(item => item.usuario))].filter(Boolean).sort();
+            const itemsUnicos = [...new Set(datosOriginales.map(item => item.descripcion))].filter(Boolean).sort();
+            const estadosUnicos = [...new Set(datosOriginales.map(item => item.estado))].filter(Boolean).sort();
+            const categoriasUnicas = [...new Set(datosOriginales.map(item => extraerCategoria(item.codigo, item.descripcion)))].filter(Boolean).sort();
             
             usuariosUnicos.forEach(user => {
                 let opt = document.createElement("option");
@@ -178,24 +245,80 @@
                 opt.textContent = item;
                 selectItem.appendChild(opt);
             });
+
+            estadosUnicos.forEach(est => {
+                let opt = document.createElement("option");
+                opt.value = est;
+                opt.textContent = est;
+                selectEstado.appendChild(opt);
+            });
+
+            categoriasUnicas.forEach(cat => {
+                let opt = document.createElement("option");
+                opt.value = cat;
+                opt.textContent = cat;
+                selectCategoria.appendChild(opt);
+            });
         }
 
         function filtrarDatos() {
+            const pedidoBuscado = document.getElementById("inputFiltroPedido").value.trim().toLowerCase();
             const usuarioSeleccionado = document.getElementById("filtroUsuario").value;
             const itemSeleccionado = document.getElementById("filtroItem").value;
+            const estadoSeleccionado = document.getElementById("filtroEstado").value;
+            const categoriaSeleccionada = document.getElementById("filtroCategoria").value;
+            const fechaDesde = document.getElementById("filtroFechaDesde").value;
+            const fechaHasta = document.getElementById("filtroFechaHasta").value;
             
             const filtrados = datosOriginales.filter(item => {
+                const coincidePedido = (!pedidoBuscado || String(item.pedido || "").toLowerCase().includes(pedidoBuscado) || String(item.solicitud || "").toLowerCase().includes(pedidoBuscado));
                 const coincideUsuario = (usuarioSeleccionado === "TODOS" || item.usuario === usuarioSeleccionado);
                 const coincideItem = (itemSeleccionado === "TODOS" || item.descripcion === itemSeleccionado);
-                return coincideUsuario && coincideItem;
+                const coincideEstado = (estadoSeleccionado === "TODOS" || item.estado === estadoSeleccionado);
+                const categoriaItem = extraerCategoria(item.codigo, item.descripcion);
+                const coincideCategoria = (categoriaSeleccionada === "TODOS" || categoriaItem === categoriaSeleccionada);
+                
+                // Validación de Rango de Fechas
+                let coincideFecha = true;
+                if (fechaDesde || fechaHasta) {
+                    const fechaItemStr = formatearSoloFecha(item.fecha); // YYYY-MM-DD
+                    if (fechaItemStr) {
+                        if (fechaDesde && fechaItemStr < fechaDesde) coincideFecha = false;
+                        if (fechaHasta && fechaItemStr > fechaHasta) coincideFecha = false;
+                    }
+                }
+
+                return coincidePedido && coincideUsuario && coincideItem && coincideEstado && coincideCategoria && coincideFecha;
             });
             
             actualizarDashboard(filtrados);
         }
 
+        function limpiarFiltroPedido() {
+            document.getElementById("inputFiltroPedido").value = "";
+            filtrarDatos();
+        }
+
+        function resetFiltros() {
+            document.getElementById("inputFiltroPedido").value = "";
+            document.getElementById("filtroUsuario").value = "TODOS";
+            document.getElementById("filtroItem").value = "TODOS";
+            document.getElementById("filtroEstado").value = "TODOS";
+            document.getElementById("filtroCategoria").value = "TODOS";
+            document.getElementById("filtroFechaDesde").value = "";
+            document.getElementById("filtroFechaHasta").value = "";
+            actualizarDashboard(datosOriginales);
+        }
+
         function formatearSoloFecha(fechaStr) {
             if (!fechaStr) return '';
-            return String(fechaStr).split(' ')[0];
+            // Si la fecha viene como DD/MM/YYYY o YYYY-MM-DD
+            let partes = String(fechaStr).split(' ')[0];
+            if (partes.includes('/')) {
+                let p = partes.split('/');
+                if (p.length === 3) return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+            }
+            return partes;
         }
 
         function actualizarDashboard(data) {
@@ -208,7 +331,7 @@
             
             if (data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">Sin registros para los filtros seleccionados.</td></tr>`;
-                actualizarGrafica([]);
+                actualizarGraficaTop5([]);
                 return;
             }
 
@@ -232,15 +355,23 @@
             });
             tbody.appendChild(fragment);
 
-            actualizarGrafica(data);
+            actualizarGraficaTop5(data);
         }
 
-        function actualizarGrafica(data) {
+        function actualizarGraficaTop5(data) {
             const conteoItems = {};
             data.forEach(item => {
                 let desc = item.descripcion || 'Desconocido';
                 conteoItems[desc] = (conteoItems[desc] || 0) + Number(item.cantidad || 0);
             });
+
+            // Ordenar y obtener el Top 5
+            const top5Entries = Object.entries(conteoItems)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const labels = top5Entries.map(e => e[0]);
+            const valores = top5Entries.map(e => e[1]);
 
             const ctx = document.getElementById('chartItems').getContext('2d');
             if (miGrafica) { miGrafica.destroy(); }
@@ -248,14 +379,14 @@
             miGrafica = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(conteoItems),
+                    labels: labels.length > 0 ? labels : ['Sin datos'],
                     datasets: [{
-                        label: 'Cantidad',
-                        data: Object.values(conteoItems),
-                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        label: 'Unidades',
+                        data: valores,
+                        backgroundColor: 'rgba(13, 110, 253, 0.75)',
                         borderColor: 'rgba(13, 110, 253, 1)',
                         borderWidth: 1,
-                        borderRadius: 3
+                        borderRadius: 4
                     }]
                 },
                 options: {
@@ -264,7 +395,7 @@
                     plugins: { legend: { display: false } },
                     scales: { 
                         y: { beginAtZero: true, ticks: { font: { size: 10 } } },
-                        x: { ticks: { font: { size: 9 }, maxRotation: 25 } }
+                        x: { ticks: { font: { size: 9 }, maxRotation: 20 } }
                     }
                 }
             });
