@@ -31,6 +31,20 @@
             --text-light: #ecf0f1;
             --text-dark: #333;
             --submenu-bg: #233140;
+            --card-bg: #ffffff;
+            --topbar-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #1a252f;
+            --secondary-color: #11181f;
+            --accent-color: #3498db;
+            --background-color: #12181b;
+            --text-light: #bdc3c7;
+            --text-dark: #ecf0f1;
+            --submenu-bg: #0d1117;
+            --card-bg: #1e262c;
+            --topbar-bg: #1a252f;
         }
 
         body {
@@ -38,9 +52,11 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--background-color);
+            color: var(--text-dark);
             display: flex;
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Barra Lateral (Sidebar) */
@@ -157,12 +173,39 @@
 
         /* Barra Superior (Topbar) */
         .topbar {
-            background-color: white;
+            background-color: var(--topbar-bg);
             padding: 15px 30px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Botón Modo Oscuro / Claro */
+        .theme-toggle-btn {
+            background: none;
+            border: 2px solid var(--accent-color);
+            color: var(--text-dark);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
         }
 
         .user-info {
@@ -208,13 +251,13 @@
         }
 
         .card {
-            background-color: white;
+            background-color: var(--card-bg);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, background-color 0.3s ease;
         }
 
         .card:hover {
@@ -241,7 +284,7 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
     <!-- Barra Lateral -->
     <nav class="sidebar">
@@ -309,12 +352,19 @@
         <header class="topbar">
             <h2>Panel de Control</h2>
             
-            <!-- Muestra Nombre y Abajo el Rol -->
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <div class="user-details">
-                    <span class="user-name" id="userNameDisplay">Cargando...</span>
-                    <span class="user-role" id="userRoleDisplay">-</span>
+            <div class="topbar-right">
+                <!-- Botón Modo Claro / Oscuro -->
+                <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn">
+                    <i class="fas fa-moon" id="themeIcon"></i> <span id="themeText">Modo Oscuro</span>
+                </button>
+
+                <!-- Muestra Nombre y Abajo el Rol -->
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div class="user-details">
+                        <span class="user-name" id="userNameDisplay">Cargando...</span>
+                        <span class="user-role" id="userRoleDisplay">-</span>
+                    </div>
                 </div>
             </div>
         </header>
@@ -327,17 +377,17 @@
             <!-- Tarjetas de Resumen -->
             <div class="dashboard-cards">
                 <div class="card">
-                    <div class="card-icon"><i class="fas fa-users"></i></div>
+                    <div class="card-icon"><i class="fas fa-file-invoice"></i></div>
                     <div class="card-info">
-                        <h4>Usuarios Activos</h4>
-                        <p>12</p>
+                        <h4>Kardex Generados</h4>
+                        <p id="kardexCount"><i class="fas fa-spinner fa-spin" style="font-size: 18px;"></i></p>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-icon"><i class="fas fa-user-shield"></i></div>
+                    <div class="card-icon"><i class="fas fa-cut"></i></div>
                     <div class="card-info">
-                        <h4>Roles Definidos</h4>
-                        <p>3</p>
+                        <h4>Formatos de Retazos</h4>
+                        <p id="retazosCount"><i class="fas fa-spinner fa-spin" style="font-size: 18px;"></i></p>
                     </div>
                 </div>
                 <div class="card">
@@ -354,15 +404,53 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec';
 
-        // Función para desplegar los submenús (Inventario, Reportes y Configuración)
+        // Función para desplegar los submenús
         function toggleSubmenu(element) {
             const parentLi = element.parentElement;
             parentLi.classList.toggle('open');
         }
 
+        // Función para alternar entre Modo Claro y Oscuro
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+
+            if (currentTheme === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+                themeText.innerText = 'Modo Claro';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                themeIcon.className = 'fas fa-moon';
+                themeText.innerText = 'Modo Oscuro';
+            }
+        }
+
+        // Cargar tema guardado al iniciar
+        function cargarTemaGuardado() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+
+            body.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+                themeText.innerText = 'Modo Claro';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.innerText = 'Modo Oscuro';
+            }
+        }
+
         // Cargar datos dinámicos al iniciar la página
         document.addEventListener('DOMContentLoaded', () => {
-            // Validar sesión activa
+            cargarTemaGuardado();
+
             if (localStorage.getItem('sesionIniciada') !== 'true') {
                 window.location.href = 'index.html';
                 return;
@@ -379,9 +467,10 @@
                 document.getElementById('userRoleDisplay').innerText = userRole;
             }
 
-            // Consultar únicamente los pedidos pendientes de sus técnicos a cargo
             if (usuarioLogueado) {
                 obtenerPedidosPendientes(usuarioLogueado);
+                obtenerConteoKardex();
+                obtenerConteoRetazos();
             }
         });
 
@@ -399,7 +488,6 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success' && data.pedidos && data.pedidos.length > 0) {
-                    // Se obtienen las solicitudes o pedidos únicos
                     const solicitudesUnicas = new Set(data.pedidos.map(p => p.solicitud || p.pedido));
                     countElement.innerText = solicitudesUnicas.size;
                 } else {
@@ -408,6 +496,50 @@
             })
             .catch(err => {
                 console.error('Error al obtener conteo de pedidos:', err);
+                countElement.innerText = '0';
+            });
+        }
+
+        function obtenerConteoKardex() {
+            const countElement = document.getElementById('kardexCount');
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getKardexCount' }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    countElement.innerText = data.totalKardex || 0;
+                } else {
+                    countElement.innerText = '0';
+                }
+            })
+            .catch(err => {
+                console.error('Error al obtener conteo de Kardex:', err);
+                countElement.innerText = '0';
+            });
+        }
+
+        function obtenerConteoRetazos() {
+            const countElement = document.getElementById('retazosCount');
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getRetazosCount' }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    countElement.innerText = data.totalRetazos || 0;
+                } else {
+                    countElement.innerText = '0';
+                }
+            })
+            .catch(err => {
+                console.error('Error al obtener conteo de retazos:', err);
                 countElement.innerText = '0';
             });
         }
