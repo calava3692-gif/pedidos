@@ -10,7 +10,7 @@
         }
     })();
 
-    // Función global para cerrar sesión (puedes asignarla al botón de Salir)
+    // Función global para cerrar sesión
     function cerrarSesion() {
         localStorage.clear();
         window.location.href = 'index.html';
@@ -359,7 +359,6 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxJmtoTOULHHnbKTJDSk2cSwZtQRur-_fwH8jGVRbutl_qlP4ZtRjguIujsYNtnv-YVmw/exec'; 
 
-        // Recuperar el identificador del usuario en sesión
         const usuarioCoordinador = localStorage.getItem('usuarioLogueado') || localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'coordinador';
 
         let agrupadosPorSolicitud = {};
@@ -449,17 +448,17 @@
             }
 
             const items = agrupadosPorSolicitud[solId];
-            
-            document.getElementById('usuarioTecnico').value = items[0].usuario || '-';
-            document.getElementById('fechaConsulta').value = items[0].fecha || '-';
-            document.getElementById('badgeEstado').textContent = items[0].estado || 'Pendiente';
-
-            // Validar si el pedido es de tipo "Pedido Desbloqueo" (Columna J)
             const primerItem = items[0];
-            const tipoPedido = (primerItem.tipo || primerItem.tipoPedido || '').trim();
+            
+            document.getElementById('usuarioTecnico').value = primerItem.usuario || '-';
+            document.getElementById('fechaConsulta').value = primerItem.fecha || '-';
+            document.getElementById('badgeEstado').textContent = primerItem.estado || 'Pendiente';
 
-            if (tipoPedido.toLowerCase() === 'pedido desbloqueo') {
-                const serie = primerItem.serie || '-';
+            // Validar si el tipo corresponde a "Pedido Desbloqueo"
+            const tipoPedido = (primerItem.tipo || primerItem.tipoPedido || primerItem.tipo_actividad || '').trim();
+
+            if (tipoPedido.toLowerCase().includes('desbloqueo')) {
+                const serie = primerItem.serie || primerItem.codigo_bobina || '-';
                 const devolucion = primerItem.devolucion || '-';
 
                 if (spanSerie) {
@@ -502,7 +501,7 @@
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'eliminarItem',
-                    rowNum: parseInt(rowNum) // Aseguramos que sea entero
+                    rowNum: parseInt(rowNum)
                 }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             })
@@ -536,7 +535,6 @@
 
             inputs.forEach(input => {
                 modificaciones.push({
-                    // CRÍTICO: Convertimos los strings a números antes de enviar
                     rowNum: parseInt(input.getAttribute('data-rownum')),
                     nuevaCantidad: Number(input.value)
                 });
@@ -548,7 +546,7 @@
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'autorizarPedido',
-                    numPedido: idSolicitud, // Enviado como identificador (puede ser texto o número, el backend lo maneja)
+                    numPedido: idSolicitud,
                     modificaciones: modificaciones
                 }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
@@ -556,7 +554,6 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Muestra el mensaje exacto que armamos en Apps Script
                     alert(data.message); 
                     cargarPedidos();
                 } else {
@@ -592,7 +589,6 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Muestra el mensaje exacto que armamos en Apps Script
                     alert(data.message); 
                     cargarPedidos();
                 } else {
