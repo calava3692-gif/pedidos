@@ -146,7 +146,7 @@
             cursor: pointer;
         }
 
-        /* Insignia de Estado */
+        /* Insignia de Estado y Datos Extra */
         .badge-pending {
             display: inline-block;
             background-color: var(--badge-pending-bg);
@@ -156,6 +156,16 @@
             border-radius: 6px;
             font-size: 13px;
             width: fit-content;
+        }
+
+        .extra-info-badge {
+            display: none;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-main);
         }
 
         /* Tabla de ítems */
@@ -304,8 +314,10 @@
 
             <div class="form-group">
                 <label>ESTADO:</label>
-                <div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span class="badge-pending" id="badgeEstado">Pendiente</span>
+                    <span id="infoSerie" class="extra-info-badge"></span>
+                    <span id="infoDevolucion" class="extra-info-badge"></span>
                 </div>
             </div>
         </div>
@@ -385,12 +397,17 @@
             const select = document.getElementById('selectSolicitud');
             select.innerHTML = '';
 
+            const spanSerie = document.getElementById('infoSerie');
+            const spanDevolucion = document.getElementById('infoDevolucion');
+
             if (!pedidos || pedidos.length === 0) {
                 select.innerHTML = '<option value="">Sin pendientes</option>';
                 document.getElementById('usuarioTecnico').value = '-';
                 document.getElementById('fechaConsulta').value = '-';
                 document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="empty-row">No hay solicitudes pendientes asignadas</td></tr>';
                 document.getElementById('badgeEstado').textContent = 'Al día';
+                if (spanSerie) spanSerie.style.display = 'none';
+                if (spanDevolucion) spanDevolucion.style.display = 'none';
                 return;
             }
 
@@ -418,18 +435,45 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
+            const spanSerie = document.getElementById('infoSerie');
+            const spanDevolucion = document.getElementById('infoDevolucion');
+
             if (!solId || !agrupadosPorSolicitud[solId]) {
                 document.getElementById('usuarioTecnico').value = '-';
                 document.getElementById('fechaConsulta').value = '-';
+                document.getElementById('badgeEstado').textContent = 'Pendiente';
+                if (spanSerie) spanSerie.style.display = 'none';
+                if (spanDevolucion) spanDevolucion.style.display = 'none';
                 tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Selecciona una solicitud</td></tr>';
                 return;
             }
 
             const items = agrupadosPorSolicitud[solId];
             
-            document.getElementById('usuarioTecnico').value = items[0].usuario;
+            document.getElementById('usuarioTecnico').value = items[0].usuario || '-';
             document.getElementById('fechaConsulta').value = items[0].fecha || '-';
             document.getElementById('badgeEstado').textContent = items[0].estado || 'Pendiente';
+
+            // Validar si el pedido es de tipo "Pedido Desbloqueo" (Columna J)
+            const primerItem = items[0];
+            const tipoPedido = (primerItem.tipo || primerItem.tipoPedido || '').trim();
+
+            if (tipoPedido.toLowerCase() === 'pedido desbloqueo') {
+                const serie = primerItem.serie || '-';
+                const devolucion = primerItem.devolucion || '-';
+
+                if (spanSerie) {
+                    spanSerie.innerHTML = `<i class="fas fa-tag"></i> Serie: <b>${serie}</b>`;
+                    spanSerie.style.display = 'inline-block';
+                }
+                if (spanDevolucion) {
+                    spanDevolucion.innerHTML = `<i class="fas fa-undo"></i> Devolución: <b>${devolucion}</b>`;
+                    spanDevolucion.style.display = 'inline-block';
+                }
+            } else {
+                if (spanSerie) spanSerie.style.display = 'none';
+                if (spanDevolucion) spanDevolucion.style.display = 'none';
+            }
 
             items.forEach(item => {
                 const row = document.createElement('tr');
