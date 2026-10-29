@@ -59,7 +59,7 @@
             border: 1px solid var(--border-color);
             border-radius: 14px;
             width: 100%;
-            max-width: 820px;
+            max-width: 850px;
             padding: 24px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             box-sizing: border-box;
@@ -164,23 +164,23 @@
             height: fit-content;
         }
 
-        /* Bloque estático para la Serie y Devolución */
+        /* Bloque estático lateral para la Serie y Devolución */
         .desbloqueo-box {
             display: none;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 8px 14px;
             font-size: 12px;
             color: var(--text-main);
             line-height: 1.5;
-            min-width: 170px;
+            min-width: 200px;
         }
 
         .desbloqueo-box div {
             display: flex;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
         }
 
         .desbloqueo-box span.label {
@@ -336,10 +336,10 @@
                 <label>ESTADO:</label>
                 <div class="estado-container">
                     <span class="badge-pending" id="badgeEstado">Pendiente</span>
-                    <!-- Bloque estático lateral para Desbloqueo -->
+                    <!-- Bloque estático lateral para Serie y Devolución -->
                     <div id="boxDesbloqueo" class="desbloqueo-box">
                         <div><span class="label">Serie:</span> <span id="valSerie">-</span></div>
-                        <div><span class="label">Devolucion:</span> <span id="valDevolucion">-</span></div>
+                        <div><span class="label">Devolución:</span> <span id="valDevolucion">-</span></div>
                     </div>
                 </div>
             </div>
@@ -426,7 +426,7 @@
                 document.getElementById('usuarioTecnico').value = '-';
                 document.getElementById('fechaConsulta').value = '-';
                 document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="empty-row">No hay solicitudes pendientes asignadas</td></tr>';
-                document.getElementById('badgeEstado').textContent = 'Al díaS';
+                document.getElementById('badgeEstado').textContent = 'Al día';
                 if (boxDesbloqueo) boxDesbloqueo.style.display = 'none';
                 return;
             }
@@ -472,7 +472,7 @@
             const primerItem = items[0];
             
             document.getElementById('usuarioTecnico').value = primerItem.usuario || '-';
-            // Toma la fecha real de la solicitud (columna A) en lugar de la fecha actual del sistema
+            // Se asigna la fecha real de la solicitud (Columna A)
             document.getElementById('fechaConsulta').value = primerItem.fecha || '-';
             document.getElementById('badgeEstado').textContent = primerItem.estado || 'Pendiente';
 
@@ -480,8 +480,9 @@
             const tipoPedido = (primerItem.tipo || primerItem.tipoPedido || primerItem.tipo_solicitud || primerItem.tipo_actividad || '').trim();
 
             if (tipoPedido.toLowerCase().includes('desbloqueo')) {
-                valSerie.textContent = primerItem.serie || '-';
-                valDevolucion.textContent = primerItem.devolucion || '-';
+                // Capturar la serie y devolución de las columnas K y L (cubriendo variantes posibles del JSON)
+                valSerie.textContent = primerItem.serie || primerItem.serie_fo || primerItem.codigo_bobina || '-';
+                valDevolucion.textContent = primerItem.devolucion || primerItem.dev || '-';
                 if (boxDesbloqueo) boxDesbloqueo.style.display = 'block';
             } else {
                 if (boxDesbloqueo) boxDesbloqueo.style.display = 'none';
